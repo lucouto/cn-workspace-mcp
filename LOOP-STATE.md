@@ -10,7 +10,15 @@ Checklist: `docs/DEPLOY.md`.
 | 2 | `deploy/coolify.env.example` | done | redirect allowlist verified in container (evil 400, Claude 201) |
 | 3 | `cn_extras/admin.py` — check / list / purge (+ tests) | done | `check` decrypts a real server's store; wrong key detected |
 | 4 | `docs/DEPLOY.md`, privacy page draft (FR/EN), admin request note (FR) | done | |
-| 5 | GCP project, Coolify app, DNS, secrets, first connection, acceptance tests | **[Luciano]** | docs/DEPLOY.md §0–§7 |
+| 5 | DNS, GCP project, Coolify app, secrets, first deploy | done 2026-09-23 | see "Production facts" below. Smoke tests §4 all pass. |
+| 6 | First connection from Claude, acceptance tests §6, admin approvals §7 | **[Luciano]** | |
+
+### Production facts (2026-09-23)
+- URL `https://gws.mcp.cheminneuf.community` (MCP endpoint `/mcp`, privacy `/privacy`). DNS: Azure DNS zone `cheminneuf.community` (RG `nextcloud`, sub "CCN PT"), A `gws.mcp` → `52.167.168.48`, TTL 300.
+- Host: Coolify 4.3.23 on `vm-coolify-n8n` (Azure **eastus2**, sub "CCN BR", B2ms, shared with ~20 apps). Coolify server `bc8c4ok80oogg4gswws4ks80`, project "Production Stack" `q4sgkowosk88os848k008o0o`, env `production`.
+- App `cn-workspace-mcp` uuid **`0yyaz9fot838pqbnensz9dbo`**: branch `cn/main`, `/Dockerfile.cn`, port 8000, health `/health`, memory limit 1g, volume `/data` (storage `8hued72sdjnmq5jbnb0ww8vc`). No auto-deploy webhook (public repo): deploy with `POST $COOLIFY_API_URL/deploy {"uuid":…}`.
+- Google OAuth client `385359822646-ihp90c1i6llfha04tk1h4pa6vk5mjk25.apps.googleusercontent.com`, project `cn-workspace-mcp`, External / In production. Consent-screen app name currently "cheminneuf.community".
+- Secrets (signing key, client secret) were written by Luciano with `~/Projets_apps_github/mcp_google/set-coolify-secrets.sh` (the permission classifier blocks Claude from writing Coolify secrets). Private copy of the settings: `~/Projets_apps_github/mcp_google/coolify-cn-workspace-mcp.env` (600).
 
 ### Needs validation (Luciano)
 - ~~DEPLOY.md §0 decisions~~ settled 2026-09-23 (External; 3 Workspace domains; specific gmail addresses; gws.mcp.cheminneuf.community; claude.ai callback + Claude Code loopback). **Still open:** privacy page URL + contact; the list of allowed gmail.com addresses; who administers chemin-neuf.org.
