@@ -226,6 +226,7 @@ SERVICE_MODULES = {
     "contacts": "gcontacts.contacts_tools",
     "search": "gsearch.search_tools",
     "appscript": "gappsscript.apps_script_tools",
+    "cn": "cn_extras.tools",  # cn-workspace-mcp fork, see FORK_CHANGES.md
 }
 VALID_SERVICES = frozenset(SERVICE_MODULES)
 
