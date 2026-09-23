@@ -39,7 +39,7 @@ from core.config import (
 )
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
 from fastmcp import FastMCP
-from fastmcp.server.auth.providers.google import GoogleProvider
+from cn_extras.auth_provider import AllowlistGoogleProvider as GoogleProvider  # cn fork: + domain allowlist (FORK_CHANGES.md)
 from mcp.types import ToolAnnotations, Icon
 from starlette.applications import Starlette
 from starlette.datastructures import MutableHeaders

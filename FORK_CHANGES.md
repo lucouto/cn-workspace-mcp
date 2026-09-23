@@ -32,6 +32,7 @@ Every change to an upstream file is listed in §3, with its justification. New c
 - Encryption key: `derive_jwt_key(jwt_signing_key, salt="fastmcp-storage-encryption-key")`. The JWT key comes from `FASTMCP_SERVER_AUTH_GOOGLE_JWT_SIGNING_KEY`, or else from the client secret (`core/server.py:451-473`). Rotating either invalidates all sessions.
 - Verified locally: after a DCR registration, the file on disk does not contain the client name in clear.
 - **The legacy credential store is plaintext.** `LocalDirectoryCredentialStore` (`auth/credential_store.py:78`) writes plain JSON. In OAuth 2.1 mode *without* stateless mode, refreshed Google credentials are persisted there (`auth/google_auth.py:999-1010`, inside `get_credentials`). With `WORKSPACE_MCP_STATELESS_MODE=true` the store is never instantiated (`google_auth.py:848-851`, `fastmcp_server.py:138`). → **Stateless mode is mandatory for us.**
+- Stateless mode also disables upstream's DEBUG-level log file (`core/log_formatter.py:212-220`), which would otherwise write search queries (logged at DEBUG) to disk.
 - Stateless mode does not touch OAuth proxy storage. `core/server.py` never checks it, and it only sets `stateless_http=True` on the transport (`main.py:972`).
 - The in-memory `OAuth21SessionStore._sessions` (`auth/oauth21_session_store.py:237`) is rebuilt per request from the validated access token (`ensure_session_from_access_token`), so losing it on restart is harmless.
 
@@ -72,7 +73,7 @@ Every change to an upstream file is listed in §3, with its justification. New c
 
 | # | File | Change | Why |
 |---|---|---|---|
-| 1 | `core/server.py` (~l.732) | `GoogleProvider(...)` → `AllowlistGoogleProvider(...)` from `cn_extras.auth` | Domain allowlist at token exchange (§1.4) |
+| 1 | `core/server.py:42` | The import of FastMCP's `GoogleProvider` is replaced by `cn_extras.auth_provider.AllowlistGoogleProvider as GoogleProvider` (one line). The call site is untouched, so upstream's tests that patch `core.server.GoogleProvider` keep working. | Domain allowlist at callback, token exchange and per call (§1.4) |
 | 2 | `main.py:214` `SERVICE_MODULES` | Add `"cn": "cn_extras.tools"` (one line). Run with `--tools gmail drive cn`. (`fastmcp_server.py:156` has a separate hard-coded import list, used only for FastMCP Cloud, so not our deploy path.) | New tools |
 | 3 | ~~`core/tool_tiers.yaml`~~ | **Not needed** (Phase 1): with `--tools` and no `--tool-tier`, every imported tool stays enabled (`core/tool_registry.py:166`). Only needed if we ever run with `--tool-tier`. | — |
 | 4 | `pyproject.toml` | Optional extra `cn` (Pillow, openpyxl; `pypdfium2`, `azure-ai-documentintelligence` in Phase 2b). `cn_extras` is picked up by `packages.find` automatically. | Dependencies |
@@ -80,6 +81,12 @@ Every change to an upstream file is listed in §3, with its justification. New c
 Everything else (extraction, DI, heuristics, quota, middleware) stays inside `cn_extras/`. Upstream has no plugin/entry-point mechanism at v1.28.0. The `SERVICE_MODULES` map is the cleanest hook, and an upstream PR could make it env-extensible.
 
 ---
+
+### Private FastMCP internals used by the allowlist (check at every FastMCP upgrade)
+`OAuthProxy._handle_idp_callback`, `exchange_authorization_code`, `exchange_refresh_token`, `register_client` (overridden); `_code_store`, `_jti_mapping_store`, `_upstream_token_store`, `_jwt_issuer`/`jwt_issuer.verify_token(..., expected_token_use="refresh")`, models `ClientCode`, `JTIMapping`, `UpstreamTokenSet.raw_token_data` (read). Tests in `tests/cn_extras/test_allowlist.py` use a real provider, so an incompatible FastMCP change fails them.
+
+### Noted, not changed
+- `/attachments/{file_id}` (`core/server.py`) is served without auth (unguessable ID only). With stateless mode nothing is ever stored there, so it serves nothing in our deployment.
 
 ### Upstream code reused by `drive_read` (check at rebase)
 `gdrive.drive_helpers.resolve_drive_item` (shortcuts, shared drives), `core.file_limits.download_media_bytes` (streaming cap), `core.file_limits.FileTooLargeError`, `core.utils.extract_office_xml_text` (DOCX only now). No upstream file was edited in Phase 2 beyond `pyproject.toml`/`uv.lock`.
@@ -90,4 +97,6 @@ Everything else (extraction, DI, heuristics, quota, middleware) stays inside `cn
 |---|---|---|---|
 | 2026-09-23 | `main.py` (`SERVICE_MODULES`) | +1 line: `"cn": "cn_extras.tools"` | Register the cn_extras tools as service `cn` (touch point #2) |
 | 2026-09-23 | `pyproject.toml` | optional extra `cn = ["pillow>=11.0.0", "openpyxl>=3.1.0", "pypdfium2>=4.30.0", "azure-ai-documentintelligence>=1.0.0"]` (openpyxl: Phase 2, MIT; pypdfium2 Apache-2.0/BSD-3 and the Azure SDK MIT: Phase 2b) | Image resizing; sheet-aware XLSX reading. Deploy must install `--extra cn` (Dockerfile, Phase 4) |
+| 2026-09-23 | `core/server.py` | 1 line (import): `GoogleProvider` → `AllowlistGoogleProvider as GoogleProvider` | Phase 3 domain allowlist. Every OAuth 2.1 provider built by upstream is the allowlist one; the external-provider mode (`EXTERNAL_OAUTH21_PROVIDER`) is NOT covered and must not be used |
+| 2026-09-23 | `tests/conftest.py` (new file) | Autouse `CN_ALLOWLIST_ENFORCE=false` for the test run | The fork fails closed by default with OAuth 2.1; upstream tests build OAuth servers without an allowlist. Allowlist tests set it themselves |
 | 2026-09-23 | `uv.lock` | Regenerated by `uv lock` | Pillow added. Most of the diff is lockfile-format churn from a newer uv (revision 1→3). At rebase: take upstream's lock, then re-run `uv lock` |

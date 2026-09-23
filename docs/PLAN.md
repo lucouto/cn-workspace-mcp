@@ -271,7 +271,8 @@ All extracted content is **untrusted data** (prompt injection via attachments is
 ## 6. Auth and multi-tenancy
 
 - Enable upstream OAuth 2.1: `MCP_ENABLE_OAUTH21=true`, Streamable HTTP transport.
-- **Domain allowlist (new):** env var `CN_ALLOWED_DOMAINS=cheminneuf.community,chemin-neuf.org,wyd2027.org`. Check after the Google callback, on the ID token's `email` with `email_verified=true`. Don't rely only on the `hd` claim — it's absent for non-Workspace accounts. Optional `CN_ALLOWED_EMAILS` for individual exceptions (e.g. a volunteer with a gmail.com address).
+- *As built (Phase 3, after security review):* `cn_extras/allowlist.py` (policy) + `cn_extras/auth_provider.py`. Check points: (1) client registration refuses redirect URIs with a fragment or a `code` parameter; (2) the Google callback: a refused user gets a 403 page, their code is deleted and (if their identity is known) their Google grant revoked in the background; an unverifiable redirect is refused too (fail closed); (3) the token exchange, before any Google token is stored; (4) token refresh: a removed address can't renew, and its stored Google tokens are deleted and revoked; (5) every MCP request except the `initialize`/`ping` handshake. **Domain matches require Google's `hd` claim = the domain at sign-in** (a personal Google account created on `x@chemin-neuf.org` is refused); `CN_ALLOWED_DOMAINS_WITHOUT_HD` lists allowed domains that are not on Workspace; `CN_ALLOWED_EMAILS` needs no `hd`. **Enforcement is on by default whenever OAuth 2.1 is enabled**: with no lists the server refuses to start (`CN_ALLOWLIST_ENFORCE=false` to run open on purpose); when enforced, any auth mode other than this provider (external provider, gateway, legacy) gets every request refused.
+- **Domain allowlist (new):** env var `CN_ALLOWED_DOMAINS=cheminneuf.community,chemin-neuf.org,wyd2027.org`. Check after the Google callback, on the ID token's `email` with `email_verified=true`. Require the `hd` claim for domain matches (it's absent for personal accounts, which is the point); individual addresses skip it. Optional `CN_ALLOWED_EMAILS` for individual exceptions (e.g. a volunteer with a gmail.com address).
   - Upstream's `DWD_ALLOWED_DOMAINS` (`auth/oauth_config.py:250`) is domain-wide-delegation only, so it isn't reusable. Hook the check into the FastMCP `GoogleProvider`/OAuthProxy callback (subclass in `cn_extras/`, swap in at `core/server.py`), or reject in `auth/auth_info_middleware.py` if no clean callback hook exists. This is the one delicate upstream touch point, and a good candidate for an upstream PR.
 - Scopes requested — exactly these, nothing else:
   - `openid`, `email`, `profile`
@@ -322,6 +323,8 @@ WORKSPACE_MCP_MAX_OFFICE_XML_BYTES=26214400
 # Fork additions
 CN_ALLOWED_DOMAINS=cheminneuf.community,chemin-neuf.org,wyd2027.org
 CN_ALLOWED_EMAILS=
+CN_ALLOWED_DOMAINS_WITHOUT_HD=               # allowed domains NOT on Google Workspace (no hd check)
+CN_ALLOWLIST_ENFORCE=true                    # default with OAuth 2.1; refuse to start if both lists are empty
 CN_DEFAULT_MAX_CHARS=50000
 
 # Document Intelligence fallback
@@ -420,7 +423,7 @@ GCP project, Coolify app from the fork's Dockerfile, persistent volume, domain +
 
 ## 11. Open questions
 
-- **Highest value, ask first:** are `cheminneuf.community`, `chemin-neuf.org` and `wyd2027.org` secondary domains of **one** Google Workspace tenant? If yes, create the GCP project under that tenant with user type **Internal**. That means no unverified-app screen, no 100-user cap, and one admin to convince. Only outside accounts (volunteers on gmail.com) would be left out.
+- **Highest value, ask first (now also decides `CN_ALLOWED_DOMAINS_WITHOUT_HD`):** are `cheminneuf.community`, `chemin-neuf.org` and `wyd2027.org` secondary domains of **one** Google Workspace tenant? If yes, create the GCP project under that tenant with user type **Internal**. That means no unverified-app screen, no 100-user cap, and one admin to convince. Only outside accounts (volunteers on gmail.com) would be left out.
 - Who is the Workspace admin for `chemin-neuf.org` and `wyd2027.org`, and what's their current third-party app policy?
 - Are `cheminneuf.community` and `wyd2027.org` Google Workspace domains at all? (If a domain is not on Google, those users can't use this connector.)
 - Expected number of users in year one? The 100 cap is **lifetime** (anyone who ever connected counts, including pilot testers). If it could approach 100, decide early whether CASA verification is acceptable or whether access stays limited.

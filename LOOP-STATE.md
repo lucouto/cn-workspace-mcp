@@ -1,5 +1,32 @@
 # LOOP-STATE
 
+## Phase 3 — auth hardening
+
+Spec: `docs/PLAN.md` §6 (+ as-built), §9 (allowlist, multi-user isolation), §10 Phase 3.
+
+| # | Task | Status | Notes |
+|---|---|---|---|
+| 1 | `allowlist.py` policy + startup validation (`CN_ALLOWLIST_ENFORCE`) | done | |
+| 2 | `auth_provider.py`: callback hook (403 page, code deleted, grant revoked), token-exchange hook, per-call middleware | done | real server: refuses to start when enforce+empty; starts with domains |
+| 3 | Upstream touch: `core/server.py` import swap (1 line) | done | upstream tests that patch `GoogleProvider` still pass |
+| 4 | Logging policy | done | kept upstream tools log query length at INFO, query at DEBUG; stateless mode disables the DEBUG log file; cn tools covered by log-hygiene tests |
+| 5 | Tool surface | done | 6 tools (Phase 2 check); disable list in PLAN §7 |
+| 6 | `user_google_email` isolation tests | done | override + mismatch raise |
+| 7 | Independent security reviewer | done | No bypass found in standard mode. 7 findings fixed with regression tests (20 of 23 new tests fail on pre-review code; 3 are baselines). |
+
+### Phase 3 review fixes
+- `hd` required for domain matches at sign-in/refresh (ghost personal accounts on member domains); `CN_ALLOWED_DOMAINS_WITHOUT_HD` escape hatch.
+- Fail closed by default with OAuth 2.1; other auth modes refused per request when enforced; middleware also registered from `cn_extras.tools`.
+- Registration rejects fragment / `code=` redirect URIs; callback fails closed on an unverifiable code; uses the last `code`.
+- Refresh re-checked; removed users' Google tokens deleted + revoked.
+- Catch-all `on_request` (lists too), handshake excepted.
+- Revoke only for a known identity, in the background. Trailing dots / case normalised.
+
+### Needs validation (Luciano)
+- Which of cheminneuf.community / chemin-neuf.org / wyd2027.org are Google Workspace domains? Any that isn't goes in `CN_ALLOWED_DOMAINS_WITHOUT_HD` (and loses the ghost-account protection).
+- Confirm Claude's exact OAuth callback URL(s) for `WORKSPACE_MCP_ALLOWED_CLIENT_REDIRECT_URIS` (Phase 4).
+
+
 ## Phase 2b — Document Intelligence fallback (code only)
 
 Spec: `docs/PLAN.md` §5.6 (+ as-built notes). No Azure resource yet: everything is tested against a fake client that mirrors the SDK signatures read from azure-ai-documentintelligence 1.0.2 / azure-core 1.41.0.
