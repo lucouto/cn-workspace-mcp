@@ -38,13 +38,14 @@ def render_result(
             + [f"untrusted image from: {clean_label(source) or 'unknown'}"],
         )
         return ToolResult(
-            content=[
-                TextContent(type="text", text=header),
+            content=[TextContent(type="text", text=header)]
+            + [
                 ImageContent(
                     type="image",
-                    data=base64.b64encode(result.image_data).decode("ascii"),
-                    mimeType=result.image_mime_type,
-                ),
+                    data=base64.b64encode(image.data).decode("ascii"),
+                    mimeType=image.mime_type,
+                )
+                for image in result.images
             ]
         )
 
@@ -64,6 +65,16 @@ def render_result(
 
     if result.page_count:
         all_notes.append(f"{result.page_count} page(s)")
+    if result.engine.startswith("di-"):
+        from cn_extras.output import default_max_chars
+
+        window = max_chars or default_max_chars()
+        if offset > 0 or len(result.text or "") > window:
+            # Nothing is cached (PLAN §5.6), so every call re-runs and re-bills OCR.
+            all_notes.append(
+                "each call re-runs OCR and counts against the daily quota; to read "
+                "further, prefer a narrower pages= range over a new offset."
+            )
     try:
         text = format_text_result(
             text=result.text or "",

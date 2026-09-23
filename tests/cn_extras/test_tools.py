@@ -290,7 +290,7 @@ class TestReviewRegressionsTools:
         monkeypatch.setattr(
             tools,
             "extract",
-            lambda *a: ExtractResult(
+            lambda *a, **k: ExtractResult(
                 kind="unsupported",
                 mime_type="application/pdf",
                 engine="none",

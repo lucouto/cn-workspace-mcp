@@ -18,7 +18,14 @@ from googleapiclient.errors import HttpError
 from mcp.types import ToolAnnotations
 
 from auth.service_decorator import require_google_service
-from cn_extras.extract import PPTX, XLSX, ExtractResult, extract, normalize_mime_type
+from cn_extras.extract import (
+    PPTX,
+    XLSX,
+    ExtractResult,
+    OcrOptions,
+    extract,
+    normalize_mime_type,
+)
 from cn_extras.output import clean_label
 from cn_extras.render import error_result, render_result
 from core.file_limits import FileTooLargeError, download_media_bytes, get_max_file_bytes
@@ -259,6 +266,8 @@ async def drive_read(
     max_chars: Optional[int] = None,
     offset: int = 0,
     mode: Literal["auto", "local", "ocr"] = "auto",
+    pages: Optional[str] = None,
+    render_pages: bool = False,
 ) -> ToolResult:
     """
     Reads the content of a Google Drive file, including files in shared drives
@@ -282,7 +291,12 @@ async def drive_read(
         sheet: Sheets and Excel files: sheet number (1 = first) or name; default all.
         max_chars: Maximum characters to return (default 50000).
         offset: Character offset to start from, for pagination.
-        mode: 'auto' (default), 'local', or 'ocr' (OCR not available yet).
+        mode: Uploaded PDFs and images: 'auto' (default: OCR only for scanned
+            or garbled PDFs), 'local' (never OCR), or 'ocr' (force OCR).
+        pages: PDF pages for OCR or rendering, e.g. '1-5' or '2,4'
+            (default: the first 20).
+        render_pages: For scanned PDFs when OCR is unavailable, return the
+            pages as images (at most 5 per call).
 
     Returns:
         Text content with a header (file, type, engine, pagination), or the image.
@@ -327,7 +341,15 @@ async def drive_read(
                 return _too_large(name, declared, limit)
             data = await _get_media(service, resolved_id, limit)
             result = await asyncio.to_thread(
-                extract, data, mime, name, mode, sheet=sheet
+                extract,
+                data,
+                mime,
+                name,
+                mode,
+                sheet=sheet,
+                ocr=OcrOptions(
+                    user=user_google_email, pages=pages, render_pages=render_pages
+                ),
             )
             if format != "auto":
                 notes.append("format applies to Google Docs only; ignored.")

@@ -233,6 +233,16 @@ bytes (in memory)
 - Cache nothing in v1. If repeated reads of the same large document become a real cost, add a short-lived cache of the **extracted text** (not the file), keyed by `user_email + message_id + attachment_id`, TTL 24 h, encrypted — to be decided after the pilot.
 - Feature flag: `CN_DI_ENABLED=false` disables the whole path; the server must work fully without Azure.
 
+*As built (Phase 2b, code only; no Azure resource yet):*
+- Tools gain `pages` (e.g. `1-5`, `2,4`; default first `CN_DI_MAX_PAGES`) and `render_pages` (return scanned pages as images, at most `CN_RENDER_MAX_PAGES`, default 5). `pages` is only parsed when OCR or rendering runs.
+- Routing: `mode="local"` never calls OCR. `auto` → OCR for scanned PDFs (`prebuilt-read`), garbled tables (`prebuilt-layout`), multi-page TIFFs (`prebuilt-read`) and images too large to return. `ocr` forces `prebuilt-layout` (Markdown) on a PDF or image; on other types it is noted and ignored. `features=keyValuePairs` is **not used** in v1 (no reliable way to detect forms; layout Markdown already keeps checkboxes).
+- Fallback chain: OCR → local text (if any) → page images (`render_pages=true`) → clear reason. Encrypted/damaged PDFs never reach OCR. A suspected garbled table with OCR disabled stays silent.
+- Quota: pages reserved before the call and settled to the billed count (`pages_analyzed`) after; a failed/timed-out call is charged the reservation (conservative). In-memory, per process, UTC day.
+- Cleanup: `poller.details["operation_id"]` is the result id, known right after submission, so `delete_analyze_result` runs in `finally` even on timeout (it may fail while the operation still runs; Azure then deletes after 24 h, and the failure is logged at WARNING).
+- Errors from the service are reported by exception type only (messages can echo request details). The server runs fully without the SDK installed (verified by test).
+- Review hardening: `CN_DI_TIMEOUT_S` bounds the whole call; the client never resends after a read timeout (`retry_read=0`, `retry_total=2`, one status retry for 429) so an accepted analysis is never billed twice or left undeleted. On timeout the client stays open and `poller.add_done_callback` deletes the result and closes it when Azure finishes. All pdfium calls are serialised by a process lock (PDFium isn't thread-safe). Scanned-PDF OCR spends its page budget on pages *without* text, and pages that have a text layer are kept (merged after the OCR text), so mixed PDFs lose nothing. TIFFs always get an explicit page range (the default one when Pillow can't count frames), so the quota and the page cap hold. GIF/WebP are never sent (unsupported by DI). Bad OCR settings degrade to "OCR not used", never to a parse error. Quota settles on the day it reserved.
+- Paginating an OCR result re-runs (and re-bills) OCR, since nothing is cached; the header says so and recommends a narrower `pages=`. **Decision for Luciano:** add the short-lived encrypted cache of *extracted text* considered below, or keep "cache nothing" (see LOOP-STATE).
+
 **Code layout:**
 
 ```
@@ -315,7 +325,7 @@ CN_ALLOWED_EMAILS=
 CN_DEFAULT_MAX_CHARS=50000
 
 # Document Intelligence fallback
-CN_DI_ENABLED=true
+CN_DI_ENABLED=false                          # default off; true once the Azure resource exists
 CN_DI_ENDPOINT=https://<resource>.cognitiveservices.azure.com/
 CN_DI_KEY=...
 CN_DI_MAX_BYTES=26214400                     # 25 MB
@@ -323,6 +333,10 @@ CN_DI_MAX_PAGES=20
 CN_DI_TIMEOUT_S=60
 CN_DI_DAILY_PAGES_PER_USER=200
 CN_DI_SCANNED_CHARS_PER_PAGE=50              # below this → treat PDF as scanned
+CN_DI_GARBLED_SHORT_LINE_RATIO=0.4           # garbled-table heuristic (both must hold)
+CN_DI_GARBLED_SPACE_RUNS=3
+CN_RENDER_MAX_PAGES=5                        # page images per call when OCR is unavailable
+CN_OFFICE_MAX_UNCOMPRESSED_BYTES=268435456   # 256 MB per Office package (per-part: WORKSPACE_MCP_MAX_OFFICE_XML_BYTES)
 ```
 
 Decision: keep upstream `search_gmail_messages` and `search_drive_files` only, so Claude can find a message/file and read its attachment within the same connector without juggling IDs across two connectors. Disable everything else from upstream Gmail/Drive (see above).

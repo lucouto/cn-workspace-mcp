@@ -14,7 +14,12 @@ from typing import List, Literal, Optional
 from mcp.types import TextContent, ToolAnnotations
 
 from auth.service_decorator import require_google_service
-from cn_extras.extract import extract, is_extractable, normalize_mime_type
+from cn_extras.extract import (
+    OcrOptions,
+    extract,
+    is_extractable,
+    normalize_mime_type,
+)
 from cn_extras.mime import (
     AttachmentLookupError,
     AttachmentPart,
@@ -217,6 +222,8 @@ async def gmail_read_attachment(
     max_chars: Optional[int] = None,
     offset: int = 0,
     mode: Literal["auto", "local", "ocr"] = "auto",
+    pages: Optional[str] = None,
+    render_pages: bool = False,
 ) -> ToolResult:
     """
     Reads the content of a Gmail attachment: extracted text for PDF, Word, Excel,
@@ -235,7 +242,13 @@ async def gmail_read_attachment(
         filename: Exact filename, used when part_id/attachment_id are not given.
         max_chars: Maximum characters to return (default 50000).
         offset: Character offset to start from, for pagination.
-        mode: 'auto' (default), 'local', or 'ocr' (OCR not available yet).
+        mode: 'auto' (default: OCR only for scanned or garbled PDFs and
+            multi-page TIFFs), 'local' (never OCR), or 'ocr' (force OCR on a
+            PDF or image, keeping tables and checkboxes).
+        pages: PDF pages for OCR or rendering, e.g. '1-5' or '2,4'
+            (default: the first 20).
+        render_pages: For scanned PDFs when OCR is unavailable, return the
+            pages as images (at most 5 per call).
 
     Returns:
         Text content with a header (file, type, engine, pagination), or the image.
@@ -265,7 +278,14 @@ async def gmail_read_attachment(
     if too_large is not None:
         return too_large
 
-    result = await asyncio.to_thread(extract, data, part.mime_type, part.filename, mode)
+    result = await asyncio.to_thread(
+        extract,
+        data,
+        part.mime_type,
+        part.filename,
+        mode,
+        ocr=OcrOptions(user=user_google_email, pages=pages, render_pages=render_pages),
+    )
     sender = get_header(payload, "From")
 
     logger.info(

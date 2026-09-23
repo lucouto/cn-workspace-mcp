@@ -315,3 +315,19 @@ def pptx_with_notes() -> bytes:
             "ppt/notesSlides/notesSlide7.xml": slide("Dire bonjour aux pèlerins"),
         }
     )
+
+
+def mixed_pdf(layout: str) -> bytes:
+    """Pages per character: 'T' = text page (>50 chars), 'S' = blank "scan"."""
+    from pypdf import PdfReader, PdfWriter
+
+    writer = PdfWriter()
+    for i, kind in enumerate(layout, 1):
+        if kind == "T":
+            src = PdfReader(io.BytesIO(text_pdf(f"Page {i} " + "texte reel " * 8)))
+            writer.add_page(src.pages[0])
+        else:
+            writer.add_blank_page(width=200, height=200)
+    buf = io.BytesIO()
+    writer.write(buf)
+    return buf.getvalue()

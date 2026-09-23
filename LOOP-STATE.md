@@ -1,5 +1,30 @@
 # LOOP-STATE
 
+## Phase 2b — Document Intelligence fallback (code only)
+
+Spec: `docs/PLAN.md` §5.6 (+ as-built notes). No Azure resource yet: everything is tested against a fake client that mirrors the SDK signatures read from azure-ai-documentintelligence 1.0.2 / azure-core 1.41.0.
+
+| # | Task | Status | Notes |
+|---|---|---|---|
+| 1 | `heuristics.py` — scanned + garbled-table metrics (env thresholds) | done | |
+| 2 | `quota.py` — per-user daily pages, reserve/settle, totals logged | done | in-memory; Valkey if multi-replica |
+| 3 | `extract_di.py` — status, page-range parsing/cap, analyze with delete in `finally`, timeout, size cap | done | |
+| 4 | `pages.py` — pypdfium2 rendering, long edge ≤ 1568 px | done | |
+| 5 | Routing in `extract()`, multi-image results, tool params `pages`/`render_pages` | done | |
+| 6 | Tests (`test_ocr.py`) incl. tool-level and missing-SDK | done | |
+| 7 | Independent reviewer | done | 11 findings (3 high); 10 fixed with regression tests, #11 (no render time limit) mitigated by the lock + 5-page cap. New tests fail on pre-fix code except 1 intended baseline. |
+
+### Phase 2b review fixes
+- HIGH pdfium thread-safety → process-wide lock. HIGH timeout left results undeleted and closed the client under the SDK's poller → deferred delete via `add_done_callback`. HIGH retries could exceed the timeout and double-bill → `retry_read=0`, bounded total.
+- TIFF quota/page-cap bypass; OCR re-billing on pagination (noted); mixed PDFs dropping text; GIF/WebP sent to DI; config errors surfacing as parse errors; quota across midnight; O(n²) page-spec parsing.
+- Accepted: a hostile page can hold one render slot for a while (bounded memory, 5 pages, serialised).
+
+### Needs validation (Luciano)
+- OCR text cache: every `offset` page of an OCR result re-bills OCR. Option: short-lived (≤24 h) encrypted in-memory cache of the *extracted text* keyed by user + file + pages (PLAN §5.6 said "decide after the pilot"). Recommendation: decide after seeing real pilot usage.
+- Create the Azure Document Intelligence resource (EU region, F0 for dev, S0 for the integration tests), put endpoint/key in Coolify secrets, set the budget alert (PLAN §8). Then run the §9 DI integration set and tune thresholds.
+- Monthly DI budget → sets `CN_DI_DAILY_PAGES_PER_USER`.
+
+
 ## Phase 2 — Drive tool (`drive_read`)
 
 Spec: `docs/PLAN.md` §5.3 (+ as-built notes). Verify: `uv run pytest -q` + `uv run ruff check .` + stdio tools/list + independent reviewer.

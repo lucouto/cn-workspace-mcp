@@ -1,22 +1,27 @@
 """Single entry point for turning file bytes into something Claude can read.
 
 ``extract(data, mime_type, filename, mode)`` is used by every cn_extras read
-tool. It never touches disk. Phase 2b plugs the Azure Document Intelligence
-fallback in here (see docs/PLAN.md §5.6); until then ``mode="ocr"`` falls back
-to local extraction with a note.
+tool. It never touches disk. Routing to the Azure Document Intelligence
+fallback happens here (docs/PLAN.md §5.6), so tools don't choose engines:
+local extraction first; OCR for scanned or garbled PDFs, multi-page TIFFs and
+explicit ``mode="ocr"``; rendered page images as the last resort.
 """
 
 import mimetypes
 from dataclasses import dataclass, field
 from typing import List, Literal, Optional
 
+import io
 import logging
 
 from cn_extras import extract_local as local
+from cn_extras import extract_di as di
+from cn_extras import heuristics, quota
 from cn_extras.images import (
     CONVERTIBLE_IMAGE_MIME_TYPES,
     NATIVE_IMAGE_MIME_TYPES,
     ImageNotUsableError,
+    PreparedImage,
     prepare_image,
 )
 
@@ -94,11 +99,27 @@ class ExtractResult:
     mime_type: str
     engine: str
     text: Optional[str] = None
-    image_data: Optional[bytes] = None
-    image_mime_type: Optional[str] = None
+    images: List[PreparedImage] = field(default_factory=list)
     reason: Optional[str] = None
     notes: List[str] = field(default_factory=list)
     page_count: Optional[int] = None
+
+    @property
+    def image_data(self) -> Optional[bytes]:
+        return self.images[0].data if self.images else None
+
+    @property
+    def image_mime_type(self) -> Optional[str]:
+        return self.images[0].mime_type if self.images else None
+
+
+@dataclass
+class OcrOptions:
+    """Per-call context for the Document Intelligence fallback."""
+
+    user: str = "unknown"
+    pages: Optional[str] = None
+    render_pages: bool = False
 
 
 def _guess_from_filename(filename: Optional[str]) -> Optional[str]:
@@ -193,23 +214,28 @@ def extract(
     mode: Mode = "auto",
     *,
     sheet: Optional[str] = None,
+    ocr: Optional[OcrOptions] = None,
 ) -> ExtractResult:
-    """Extract ``data``. ``sheet`` (number from 1, or name) limits XLSX output."""
+    """Extract ``data``. ``sheet`` (number from 1, or name) limits XLSX output.
+
+    ``mode``: 'auto' routes to OCR only when local extraction fails; 'local'
+    never calls OCR; 'ocr' forces it for PDFs and images.
+    """
+    if mode not in ("auto", "local", "ocr"):
+        raise ValueError("mode must be 'auto', 'local' or 'ocr'.")
+    ocr = ocr or OcrOptions()
     mime = normalize_mime_type(mime_type, filename)
     notes: List[str] = []
-    if mode == "ocr":
-        notes.append(
-            "OCR (Document Intelligence) is not available yet; used local extraction."
-        )
-    elif mode not in ("auto", "local"):
-        raise ValueError("mode must be 'auto', 'local' or 'ocr'.")
+    is_image = mime in NATIVE_IMAGE_MIME_TYPES or mime in CONVERTIBLE_IMAGE_MIME_TYPES
+    if mode == "ocr" and mime != "application/pdf" and not is_image:
+        notes.append("mode='ocr' applies to PDFs and images; used local extraction.")
 
     if not data:
         return _unsupported(mime, "the file is empty.", notes)
 
     try:
         if mime == "application/pdf":
-            return _extract_pdf(data, mime, notes)
+            return _extract_pdf(data, mime, notes, mode, ocr)
         if mime == XLSX:
             return _xlsx(data, mime, notes, sheet)
         if mime == PPTX:
@@ -246,21 +272,8 @@ def extract(
             return ExtractResult(
                 kind="text", mime_type=mime, engine="local", text=text, notes=notes
             )
-        if mime in NATIVE_IMAGE_MIME_TYPES or mime in CONVERTIBLE_IMAGE_MIME_TYPES:
-            try:
-                img = prepare_image(data, mime)
-            except ImageNotUsableError as exc:
-                return _unsupported(mime, f"image could not be returned: {exc}", notes)
-            if img.note:
-                notes.append(img.note)
-            return ExtractResult(
-                kind="image",
-                mime_type=mime,
-                engine="image",
-                image_data=img.data,
-                image_mime_type=img.mime_type,
-                notes=notes,
-            )
+        if is_image:
+            return _extract_image(data, mime, notes, mode, ocr)
     except local.ExtractionFailed as exc:
         return _unsupported(mime, str(exc), notes)
     except Exception as exc:  # RecursionError included (it is a RuntimeError)
@@ -283,20 +296,166 @@ def extract(
     return _unsupported(mime, f"no extractor for {mime}.", notes)
 
 
-def _extract_pdf(data: bytes, mime: str, notes: List[str]) -> ExtractResult:
+# --- OCR routing -------------------------------------------------------------
+
+
+class _OcrNotUsed(Exception):
+    """OCR was wanted but couldn't produce text; the message says why."""
+
+
+def _run_ocr(
+    data: bytes, model: str, pages: Optional[str], n_pages: int, user: str
+) -> str:
+    """Reserve quota, analyze, settle. Raises _OcrNotUsed with a reason."""
+    reason = di.status()
+    if reason:
+        raise _OcrNotUsed(reason)
+    try:
+        reservation = quota.reserve(user, n_pages)
+    except quota.QuotaExceeded as exc:
+        raise _OcrNotUsed(str(exc)) from exc
+    billed = 0
+    try:
+        result = di.analyze(data, model, pages)
+        billed = result.pages_analyzed or n_pages
+    except di.DiUnavailable as exc:
+        raise _OcrNotUsed(str(exc)) from exc
+    except di.DiFailed as exc:
+        billed = n_pages  # the service may have billed; stay conservative
+        raise _OcrNotUsed(str(exc)) from exc
+    finally:
+        quota.settle(reservation, n_pages, billed)
+    if not result.text:
+        raise _OcrNotUsed("OCR found no text on the selected page(s)")
+    return result.text
+
+
+def _engine(model: str) -> str:
+    return "di-layout" if model == di.LAYOUT_MODEL else "di-read"
+
+
+def _page_images(
+    data: bytes, mime: str, selected: List[int], notes: List[str], page_count: int
+) -> ExtractResult:
+    from cn_extras.pages import render_max_pages, render_pages
+
+    images = render_pages(data, selected)
+    shown = selected[: len(images)]
+    notes.append(
+        f"page(s) {di._format_pages(shown)} of {page_count} rendered as images "
+        f"(at most {render_max_pages()} per call; use pages= for others)."
+    )
+    return ExtractResult(
+        kind="image",
+        mime_type=mime,
+        engine="page-images",
+        images=images,
+        notes=notes,
+        page_count=page_count,
+    )
+
+
+def _extract_pdf(
+    data: bytes, mime: str, notes: List[str], mode: str, ocr: OcrOptions
+) -> ExtractResult:
+    # Encrypted or damaged PDFs raise here and are never sent to OCR.
     pdf = local.extract_pdf(data)
-    if pdf.total_chars == 0:
-        return ExtractResult(
-            kind="unsupported",
-            mime_type=mime,
-            engine="none",
-            reason=(
-                f"no text layer found in {pdf.page_count} page(s); the PDF is "
-                "probably scanned. OCR support is planned (Document Intelligence)."
-            ),
-            notes=notes,
-            page_count=pdf.page_count,
+    scanned = heuristics.is_scanned(pdf.pages)
+
+    why, model = None, di.READ_MODEL
+    if mode == "ocr":
+        why, model = "requested", di.LAYOUT_MODEL
+    elif mode == "auto" and scanned:
+        why = "no usable text layer"
+    elif mode == "auto" and heuristics.looks_garbled("\n".join(pdf.pages)):
+        why, model = "table layout came out garbled", di.LAYOUT_MODEL
+
+    needs_pages = bool(why) or (ocr.render_pages and (scanned or not pdf.total_chars))
+    spec, selected = "", []
+    if needs_pages:
+        try:
+            spec, selected = di.parse_pages(ocr.pages, pdf.page_count)
+        except ValueError as exc:
+            return _unsupported(mime, str(exc), notes)
+        if not ocr.pages and scanned:
+            # In a mixed PDF, spend the page budget on pages that lack text,
+            # not on the first N (which may be the ones that already have it).
+            thin = [
+                i
+                for i, text in enumerate(pdf.pages, 1)
+                if len(text) < heuristics.scanned_chars_per_page()
+            ][: di.max_pages()]
+            if thin:
+                selected = thin
+                spec = di._format_pages(thin)
+    elif ocr.pages:
+        notes.append(
+            "pages applies to OCR and page rendering; this PDF has a text layer, "
+            "so the full text is returned (paginate with offset)."
         )
+
+    if why:
+        try:
+            text = _run_ocr(data, model, spec, len(selected), ocr.user)
+            notes.append(
+                f"OCR ({model}, reason: {why}) on page(s) {spec} of {pdf.page_count}."
+            )
+            ocr_pages = set(selected)
+            kept = [
+                (i, page)
+                for i, page in enumerate(pdf.pages, 1)
+                if page and i not in ocr_pages
+            ]
+            if kept:
+                # Never drop a real text layer just because other pages needed OCR.
+                text += (
+                    "\n\n=== Pages not OCR'd (from the PDF's own text layer) ===\n\n"
+                )
+                text += "\n\n".join(f"--- page {i} ---\n{page}" for i, page in kept)
+                notes.append(
+                    f"{len(kept)} other page(s) come from the PDF's text layer."
+                )
+            missing = pdf.page_count - len(selected) - len(kept)
+            if missing > 0:
+                notes.append(
+                    f"{missing} page(s) without text were not OCR'd; ask for them with pages=."
+                )
+            return ExtractResult(
+                kind="text",
+                mime_type=mime,
+                engine=_engine(model),
+                text=text,
+                notes=notes,
+                page_count=pdf.page_count,
+            )
+        except _OcrNotUsed as exc:
+            # A disabled OCR is not news when we only suspected a garbled table.
+            if not (why.startswith("table") and di.status()):
+                notes.append(f"OCR not used: {exc}.")
+
+    if pdf.total_chars and not scanned:
+        return _local_pdf_result(pdf, mime, notes)
+    if ocr.render_pages:
+        return _page_images(data, mime, selected, notes, pdf.page_count)
+    if pdf.total_chars:
+        notes.append(
+            "the text layer is very thin; pass render_pages=true to see the pages."
+        )
+        return _local_pdf_result(pdf, mime, notes)
+    return ExtractResult(
+        kind="unsupported",
+        mime_type=mime,
+        engine="none",
+        reason=(
+            f"no text layer found in {pdf.page_count} page(s); the PDF is probably "
+            "scanned. Pass render_pages=true to get the pages as images."
+        ),
+        notes=notes,
+        page_count=pdf.page_count,
+    )
+
+
+def _local_pdf_result(pdf, mime: str, notes: List[str]) -> ExtractResult:
     empty = sum(1 for p in pdf.pages if not p)
     if empty:
         notes.append(
@@ -309,4 +468,80 @@ def _extract_pdf(data: bytes, mime: str, notes: List[str]) -> ExtractResult:
         text=pdf.joined(),
         notes=notes,
         page_count=pdf.page_count,
+    )
+
+
+# Formats Document Intelligence accepts (GIF and WebP are not among them).
+OCR_IMAGE_TYPES = {
+    "image/jpeg",
+    "image/png",
+    "image/bmp",
+    "image/x-ms-bmp",
+    "image/tiff",
+}
+
+
+def _frame_count(data: bytes) -> Optional[int]:
+    """Number of pages in a TIFF, or None when Pillow can't tell."""
+    try:
+        from PIL import Image
+
+        with Image.open(io.BytesIO(data)) as img:
+            return int(getattr(img, "n_frames", 1) or 1)
+    except Exception:
+        return None
+
+
+def _extract_image(
+    data: bytes, mime: str, notes: List[str], mode: str, ocr: OcrOptions
+) -> ExtractResult:
+    is_tiff = mime == "image/tiff"
+    frames = _frame_count(data) if is_tiff else 1
+    try:
+        img = prepare_image(data, mime)
+        image_error = None
+    except ImageNotUsableError as exc:
+        img, image_error = None, exc
+
+    why, model = None, di.READ_MODEL
+    if mode == "ocr":
+        why, model = "requested", di.LAYOUT_MODEL
+    elif mode == "auto" and (frames or 1) > 1:
+        why = f"multi-page TIFF ({frames} pages)"
+    elif mode == "auto" and image_error is not None:
+        why = "image too large to return"
+
+    if why and mime not in OCR_IMAGE_TYPES:
+        notes.append(f"OCR does not support {mime}; not attempted.")
+        why = None
+
+    if why:
+        try:
+            if is_tiff:
+                # Always bound a TIFF with an explicit page range: when the
+                # frame count is unknown, the default range (first
+                # CN_DI_MAX_PAGES) is what gets reserved and analyzed.
+                spec, selected = di.parse_pages(ocr.pages, frames)
+                text = _run_ocr(data, model, spec, len(selected), ocr.user)
+            else:
+                text = _run_ocr(data, model, None, 1, ocr.user)
+            notes.append(f"OCR ({model}, reason: {why}).")
+            return ExtractResult(
+                kind="text",
+                mime_type=mime,
+                engine=_engine(model),
+                text=text,
+                notes=notes,
+            )
+        except (_OcrNotUsed, ValueError) as exc:
+            notes.append(f"OCR not used: {exc}.")
+
+    if img is None:
+        return _unsupported(mime, f"image could not be returned: {image_error}", notes)
+    if img.note:
+        notes.append(img.note)
+    if frames and frames > 1:
+        notes.append(f"this TIFF has {frames} pages; only the first is shown.")
+    return ExtractResult(
+        kind="image", mime_type=mime, engine="image", images=[img], notes=notes
     )
