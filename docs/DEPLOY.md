@@ -32,7 +32,7 @@ Google Cloud console → **Google Auth Platform**:
 2. **APIs & Services → Library**: enable **Gmail API** and **Google Drive API**.
 3. **Branding**:
    - app name "Chemin Neuf – Claude connector";
-   - support email and logo;
+   - support email; **no logo** (a logo requires Google's brand verification, which this unverified app avoids);
    - privacy policy URL: `https://gws.mcp.cheminneuf.community/privacy` (live as soon as the app is deployed);
    - authorised domain `cheminneuf.community`.
 4. **Audience**: **External**, then click **Publish app** → *In production* (never leave it in Testing: 7-day tokens).
