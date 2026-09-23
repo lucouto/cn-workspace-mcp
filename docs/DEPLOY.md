@@ -8,15 +8,21 @@ values and secrets: `deploy/coolify.env.example`.
 
 ---
 
-## 0. Decisions first [You]
+## 0. Decisions (settled 2026-09-23)
 
-1. **Are the three domains one Google Workspace tenant?** (PLAN §11)
-   - Yes → create the GCP project under that tenant and choose user type **Internal**. No unverified-app screen, no 100-user cap.
-   - No → **External**, In production (never Testing). 100-user **lifetime** cap.
-2. **Which domains are *not* on Google Workspace?** Put them in `CN_ALLOWED_DOMAINS_WITHOUT_HD`, or leave it empty.
-3. **Hostname.** The default is `gws.mcp.cheminneuf.community`. Add a DNS A/CNAME record pointing to the Coolify server.
-4. **Claude's OAuth callback URL.** Check Claude's current custom-connector docs. `deploy/coolify.env.example` lists `https://claude.ai/api/mcp/auth_callback` and `https://claude.com/api/mcp/auth_callback`; keep only what the docs confirm.
-5. **Privacy page.** Publish `docs/privacy-page.md` (FR/EN draft) at a public URL on cheminneuf.community. Google's Branding page requires one.
+| Question | Decision |
+|---|---|
+| Single Workspace tenant? | **No → External**, In production. 100-user **lifetime** cap: keep the pilot small, don't let strangers try it. |
+| Workspace domains | cheminneuf.community, wyd2027.org (you're admin), chemin-neuf.org (Workspace, **not** your admin). All on Workspace → `CN_ALLOWED_DOMAINS_WITHOUT_HD` stays empty. |
+| gmail.com | **Specific addresses only**, listed in `CN_ALLOWED_EMAILS`. |
+| Hostname | `gws.mcp.cheminneuf.community` (DNS record to the Coolify server). |
+| Claude callback | `https://claude.ai/api/mcp/auth_callback` (hosted Claude), plus Claude Code loopback `http://localhost:*/callback`, `http://127.0.0.1:*/callback`. Source: claude.com/docs/connectors/building/authentication. Already in `deploy/coolify.env.example`, verified against FastMCP's matcher. |
+| Privacy page | **Still open:** URL on cheminneuf.community + contact address (draft: `docs/privacy-page.md`). |
+
+Facts from Claude's docs that matter here:
+- On Team, **only an Owner (or Primary Owner)** can add the connector (*Organization settings → Connectors*). Members then click *Connect* individually.
+- Claude reaches the server from **Anthropic's published IP ranges**. The server must be public (or those ranges allowlisted in any firewall/WAF). The same applies to `/.well-known/` discovery.
+- Leave "Advanced settings → OAuth Client ID/Secret" **empty** in Claude: this server uses Dynamic Client Registration / CIMD, and Google's client ID stays server-side.
 
 ## 1. Google Cloud project [You]
 
@@ -27,9 +33,9 @@ Google Cloud console → **Google Auth Platform**:
 3. **Branding**:
    - app name "Chemin Neuf – Claude connector";
    - support email and logo;
-   - privacy policy URL from step 0.5;
+   - privacy policy URL (the published `docs/privacy-page.md`);
    - authorised domain `cheminneuf.community`.
-4. **Audience**: Internal or External (step 0.1). If External, click **Publish app** → *In production*.
+4. **Audience**: **External**, then click **Publish app** → *In production* (never leave it in Testing: 7-day tokens).
 5. **Data access** → add exactly these 5 scopes:
    `openid`, `.../auth/userinfo.email`, `.../auth/userinfo.profile`,
    `.../auth/gmail.readonly`, `.../auth/drive.readonly`.
@@ -48,7 +54,7 @@ Keep it in Coolify only. **Rotating it signs everyone out** (it also derives the
 ## 3. Coolify application [You]
 
 1. **New resource** → Public/Private repository → `lucouto/cn-workspace-mcp`.
-   Branch: `cn/main` (the fork's integration branch; create and push it when you're ready).
+   Branch: `cn/main` (the fork's integration branch, already on GitHub).
 2. **Build pack**: Dockerfile. **Dockerfile location**: `/Dockerfile.cn`.
 3. **Ports exposed**: `8000`. **Domain**: `https://gws.mcp.cheminneuf.community` (Traefik issues the certificate).
 4. **Persistent storage**: a volume mounted at **`/data`**. Without it, every redeploy signs everyone out.
@@ -74,7 +80,7 @@ In the Coolify logs, check for:
 
 ## 5. First connection [You]
 
-1. Claude → **Settings → Connectors → Add custom connector**. URL: `https://gws.mcp.cheminneuf.community/mcp`. (On Team: the owner adds it once in the organisation's connector settings.)
+1. A Team **Owner**: Claude → **Organization settings → Connectors → Add custom connector**. URL: `https://gws.mcp.cheminneuf.community/mcp`. Leave Advanced settings empty. Members then find it under their connectors.
 2. **Connect** → Google sign-in with your CCN account.
    - External app: "Google hasn't verified this app" → *Advanced* → *Go to …*.
    - Accept the 5 scopes.
@@ -100,9 +106,13 @@ Also collect for the Phase 5 pilot: whether Docs Markdown export and the XLSX ex
 
 ## 7. Per-domain admin approval [You]
 
-For each domain whose admin restricts third-party apps (users would see `Error 400: admin_policy_enforced`):
-- send `docs/admin-request-note.md` with the OAuth client ID;
-- ask for **Specific** access to `gmail.readonly` and `drive.readonly`, not full Trusted.
+Users of a domain whose admin restricts third-party apps see `Error 400: admin_policy_enforced`.
+
+| Domain | Who | Action |
+|---|---|---|
+| cheminneuf.community | you | Admin console → Security → API controls → App access control → Configure new app → search the client ID → **Specific** (gmail.readonly, drive.readonly) |
+| wyd2027.org | you | same |
+| chemin-neuf.org | its admin (to identify) | send `docs/admin-request-note.md` with the client ID |
 
 Test with one account per domain **before** announcing to the Team.
 

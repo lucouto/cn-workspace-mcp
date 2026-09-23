@@ -13,8 +13,8 @@ Checklist: `docs/DEPLOY.md`.
 | 5 | GCP project, Coolify app, DNS, secrets, first connection, acceptance tests | **[Luciano]** | docs/DEPLOY.md §0–§7 |
 
 ### Needs validation (Luciano)
-- DEPLOY.md §0 decisions (Internal vs External, domains without Workspace, hostname, Claude callback URLs, privacy page URL/contact).
-- Create + push the integration branch `cn/main` (= cn/phase-4) for Coolify to deploy from.
+- ~~DEPLOY.md §0 decisions~~ settled 2026-09-23 (External; 3 Workspace domains; specific gmail addresses; gws.mcp.cheminneuf.community; claude.ai callback + Claude Code loopback). **Still open:** privacy page URL + contact; the list of allowed gmail.com addresses; who administers chemin-neuf.org.
+- ~~cn/main~~ created and pushed.
 
 
 ## Phase 3 — auth hardening

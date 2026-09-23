@@ -423,7 +423,7 @@ GCP project, Coolify app from the fork's Dockerfile, persistent volume, domain +
 
 ## 11. Open questions
 
-- **Highest value, ask first (now also decides `CN_ALLOWED_DOMAINS_WITHOUT_HD`):** are `cheminneuf.community`, `chemin-neuf.org` and `wyd2027.org` secondary domains of **one** Google Workspace tenant? If yes, create the GCP project under that tenant with user type **Internal**. That means no unverified-app screen, no 100-user cap, and one admin to convince. Only outside accounts (volunteers on gmail.com) would be left out.
+- ~~Single tenant?~~ **Answered 2026-09-23: no → External.** All three domains are Workspace (Luciano admins cheminneuf.community and wyd2027.org; chemin-neuf.org has another admin). gmail.com: specific addresses only. *(Original question:)* are `cheminneuf.community`, `chemin-neuf.org` and `wyd2027.org` secondary domains of **one** Google Workspace tenant? If yes, create the GCP project under that tenant with user type **Internal**. That means no unverified-app screen, no 100-user cap, and one admin to convince. Only outside accounts (volunteers on gmail.com) would be left out.
 - Who is the Workspace admin for `chemin-neuf.org` and `wyd2027.org`, and what's their current third-party app policy?
 - Are `cheminneuf.community` and `wyd2027.org` Google Workspace domains at all? (If a domain is not on Google, those users can't use this connector.)
 - Expected number of users in year one? The 100 cap is **lifetime** (anyone who ever connected counts, including pilot testers). If it could approach 100, decide early whether CASA verification is acceptable or whether access stays limited.
