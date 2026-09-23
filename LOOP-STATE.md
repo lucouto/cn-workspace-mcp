@@ -1,6 +1,39 @@
-# LOOP-STATE — Phase 1 (extraction + Gmail tools)
+# LOOP-STATE
 
-Spec: `docs/PLAN.md` §5.1, §5.2, §5.4 (whoami), shared extraction module, untrusted marker.
+## Phase 2 — Drive tool (`drive_read`)
+
+Spec: `docs/PLAN.md` §5.3 (+ as-built notes). Verify: `uv run pytest -q` + `uv run ruff check .` + stdio tools/list + independent reviewer.
+
+| # | Task | Status | Notes |
+|---|---|---|---|
+| 1 | `cn_extras/office.py` — XLSX per sheet as CSV (openpyxl, read-only, sheet selection, hidden flag, typed cells), PPTX slides + speaker notes; zip-size guard, output cap | done | also used for Gmail/Drive uploaded .xlsx/.pptx; upstream fallback without openpyxl |
+| 2 | `cn_extras/render.py` — shared result rendering (text/image/unsupported) | done | gmail_read_attachment refactored onto it |
+| 3 | `cn_extras/drive_tools.py` — `drive_read`: Docs md→text, Sheets XLSX→CSV fallback, Slides PPTX→text fallback, Drawings PNG, folders/other native, uploaded files, shortcuts, shared drives, refusals | done | |
+| 4 | Tests (`test_office.py`, `test_drive_tools.py`, fixtures) | done | 2564 passed / 2 skipped |
+| 5 | Docs: PLAN as-built §5.3, FORK_CHANGES | done | |
+| 6 | Independent reviewer | done | 7 findings, all fixed with regression tests; each new test fails on pre-fix code except 2 intended baselines. Sparse-sheet test hangs the old code. |
+
+### Phase 2 review fixes
+- HIGH: sparse XLSX (A1 + XFD1048576, 4.8 KB) → ~14 min CPU. Fixed: `reset_dimensions()` (0.16 s) + 5 M cell-visit budget (wide rows).
+- Only allowlisted reasons are refusals; rate limits/permissions/auth propagate to upstream's handler.
+- Per-part limit (upstream 25 MiB) on in-memory-parsed parts; package total 256 MB; worksheets streamed.
+- Our byte cap on rich exports falls back to the smaller export.
+- Lost `sheet` selection on CSV fallback is noted.
+- Markdown image regexes: bounded, single-line, only data-URI references replaced, linear time.
+- "sheet ignored" note uses the filename-normalised type.
+
+## Needs validation
+- (none)
+
+## Carry-over notes
+- **Unverified against live Google:** Docs `text/markdown` export support and its exact image syntax; real `exportSizeLimitExceeded` reason string; XLSX exports containing cached formula values (openpyxl `data_only=True` relies on them). Check in the Phase 5 pilot with real files; code falls back safely in each case.
+- Deploy (Phase 4): Dockerfile must `uv sync --extra cn`, and `WORKSPACE_MCP_TOOLS=gmail,drive,cn`.
+- DI fallback (`mode="ocr"`, page rendering with pypdfium2) is Phase 2b.
+
+---
+
+## Phase 1 — extraction + Gmail tools (done, `cn/phase-1`)
+
 Verify after each item: `uv run pytest tests/cn_extras -q` + `uv run ruff check cn_extras tests/cn_extras`.
 Final gate: full `uv run pytest -q` + `uv run ruff check .` + independent reviewer agent.
 

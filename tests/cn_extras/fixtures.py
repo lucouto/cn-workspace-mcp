@@ -260,3 +260,58 @@ def complex_message():
             ),
         ],
     )
+
+
+def real_xlsx() -> bytes:
+    """A workbook written by openpyxl: 3 named sheets, one hidden, typed cells."""
+    import datetime as dt
+
+    from openpyxl import Workbook
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Inscriptions"
+    ws.append(["Nom", "Pays", "Âge", "Arrivée", "Payé"])
+    ws.append(["João", "Brésil", 23, dt.date(2027, 7, 26), True])
+    ws.append(
+        ['Marie, dite "Mimi"', "France", 19.5, dt.datetime(2027, 7, 27, 14, 30), False]
+    )
+    budget = wb.create_sheet("Budget")
+    budget.append(["Poste", "Montant"])
+    budget.append(["Transport", 1200.0])
+    hidden = wb.create_sheet("Interne")
+    hidden.append(["secret-ish"])
+    hidden.sheet_state = "hidden"
+    wb.create_sheet("Vide")
+    buf = io.BytesIO()
+    wb.save(buf)
+    return buf.getvalue()
+
+
+def pptx_with_notes() -> bytes:
+    rel_ns = "http://schemas.openxmlformats.org/package/2006/relationships"
+    notes_type = (
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesSlide"
+    )
+
+    def slide(text):
+        return (
+            f'<?xml version="1.0"?><p:sld {_P} {_A}><p:cSld><p:spTree><p:sp><p:txBody>'
+            f"<a:p><a:r><a:t>{text}</a:t></a:r></a:p>"
+            '<a:p><a:fld type="slidenum"><a:t>99</a:t></a:fld></a:p>'
+            "</p:txBody></p:sp></p:spTree></p:cSld></p:sld>"
+        )
+
+    return _zip(
+        {
+            "ppt/presentation.xml": f'<?xml version="1.0"?><p:presentation {_P}/>',
+            # slide10 sorts after slide2 numerically, not lexically.
+            "ppt/slides/slide1.xml": slide("Accueil"),
+            "ppt/slides/slide2.xml": slide("Programme"),
+            "ppt/slides/slide10.xml": slide("Merci"),
+            "ppt/slides/_rels/slide2.xml.rels": f'<?xml version="1.0"?><Relationships xmlns="{rel_ns}">'
+            f'<Relationship Id="rId1" Type="{notes_type}" Target="../notesSlides/notesSlide7.xml"/>'
+            "</Relationships>",
+            "ppt/notesSlides/notesSlide7.xml": slide("Dire bonjour aux pèlerins"),
+        }
+    )

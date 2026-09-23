@@ -7,12 +7,11 @@ subjects, senders or content at INFO.
 """
 
 import asyncio
-import base64
 import logging
 import time
 from typing import List, Literal, Optional
 
-from mcp.types import ImageContent, TextContent, ToolAnnotations
+from mcp.types import TextContent, ToolAnnotations
 
 from auth.service_decorator import require_google_service
 from cn_extras.extract import extract, is_extractable, normalize_mime_type
@@ -24,7 +23,8 @@ from cn_extras.mime import (
     get_header,
     walk_attachments,
 )
-from cn_extras.output import clean_label, format_header, format_text_result
+from cn_extras.output import clean_label
+from cn_extras.render import error_result, render_result
 from core.file_limits import get_max_file_bytes
 from core.server import server
 from core.utils import handle_http_errors
@@ -251,7 +251,7 @@ async def gmail_read_attachment(
             filename=filename,
         )
     except AttachmentLookupError as exc:
-        return ToolResult(content=[TextContent(type="text", text=f"Error: {exc}")])
+        return error_result(str(exc))
 
     limit = _max_attachment_bytes()
     too_large = _too_large_result(part, part.size_bytes, limit)
@@ -260,7 +260,7 @@ async def gmail_read_attachment(
     try:
         data = await _download_part(service, message_id, part)
     except ValueError as exc:
-        return ToolResult(content=[TextContent(type="text", text=f"Error: {exc}")])
+        return error_result(str(exc))
     too_large = _too_large_result(part, len(data), limit)
     if too_large is not None:
         return too_large
@@ -281,58 +281,13 @@ async def gmail_read_attachment(
         (time.monotonic() - started) * 1000,
     )
 
-    if result.kind == "image":
-        header = format_header(
-            filename=part.filename,
-            mime_type=result.mime_type,
-            engine=result.engine,
-            notes=result.notes
-            + [f"untrusted image from: {clean_label(sender) or 'unknown'}"],
-        )
-        return ToolResult(
-            content=[
-                TextContent(type="text", text=header),
-                ImageContent(
-                    type="image",
-                    data=base64.b64encode(result.image_data).decode("ascii"),
-                    mimeType=result.image_mime_type,
-                ),
-            ]
-        )
-
-    if result.kind == "unsupported":
-        header = format_header(
-            filename=part.filename,
-            mime_type=result.mime_type,
-            engine=result.engine,
-            notes=result.notes,
-        )
-        return ToolResult(
-            content=[
-                TextContent(
-                    type="text",
-                    text=f"{header}\n\nNot readable: {clean_label(result.reason or '', limit=500)}",
-                )
-            ]
-        )
-
-    try:
-        text = format_text_result(
-            text=result.text or "",
-            filename=part.filename,
-            mime_type=result.mime_type,
-            engine=result.engine,
-            source=sender,
-            offset=offset,
-            max_chars=max_chars,
-            notes=(
-                result.notes
-                + ([f"{result.page_count} page(s)"] if result.page_count else [])
-            ),
-        )
-    except ValueError as exc:
-        return ToolResult(content=[TextContent(type="text", text=f"Error: {exc}")])
-    return ToolResult(content=[TextContent(type="text", text=text)])
+    return render_result(
+        result,
+        filename=part.filename,
+        source=sender,
+        offset=offset,
+        max_chars=max_chars,
+    )
 
 
 @server.tool(title="Who Am I", annotations=_READ_ONLY)
@@ -373,3 +328,8 @@ def _granted_scopes(service) -> List[str]:
         pass
     credentials = getattr(getattr(service, "_http", None), "credentials", None)
     return sorted(getattr(credentials, "scopes", None) or [])
+
+
+# Registered through this module so the single "cn" service entry in
+# main.py SERVICE_MODULES loads every cn_extras tool.
+import cn_extras.drive_tools  # noqa: E402,F401

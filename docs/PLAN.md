@@ -123,7 +123,7 @@ The upstream repo is very active (~3,000 commits). A fork that diverges will be 
 
 ## 5. Tools to build (`cn_extras/`)
 
-Target: **4 new tools** (`gmail_list_attachments`, `gmail_read_attachment`, `drive_read`, `whoami`) + **2 kept upstream** (`search_gmail_messages`, `search_drive_files`) = **6 tools** exposed to Claude. Everything else from upstream is disabled (see §7).
+Target: **4 new tools** (`gmail_list_attachments`, `gmail_read_attachment`, `drive_read`, `whoami` — all built as of Phase 2) + **2 kept upstream** (`search_gmail_messages`, `search_drive_files`) = **6 tools** exposed to Claude. Everything else from upstream is disabled (see §7).
 
 ### 5.1 `gmail_list_attachments`
 
@@ -162,7 +162,15 @@ Upstream `get_drive_file_content` already covers most of this (see §2). `drive_
 Input: `file_id`, `format` (`markdown` | `text` | `csv` | `auto`, ignored for non-native files), `max_chars`, `offset`, optional `sheet` (name, index or `all`) for Sheets, `mode` (§5.6).
 Output: text content with the same header as 5.2.
 
-**Native files** → `files.export`, mapping below. **Non-native files** (PDF, DOCX, XLSX, PPTX, CSV, TXT, images) → `files.get(alt="media")` → same `extract()` pipeline as 5.2.
+**Native files** → `files.export`, mapping below.
+
+*As built (Phase 2):* `format` applies to Google Docs only (`auto`/`markdown` → Markdown, `text` → plain); there is no `csv` value because every spreadsheet is returned as CSV per sheet. `sheet` takes a number (1 = first) or a name and also works for uploaded `.xlsx` files and Excel attachments.
+- Docs → `text/markdown`, falling back to `text/plain` on refusal. Google inlines images as base64 data URIs in the Markdown; they're replaced by `[image: alt]`.
+- Sheets → **always XLSX**, parsed with openpyxl (extra `cn`): every sheet as CSV under `=== Sheet N: name ===`, hidden sheets flagged, typed values (dates ISO, `1200.0` → `1200`). If the XLSX export is refused (10 MB), falls back to CSV = first sheet only, with a note.
+- Slides → PPTX parsed by `cn_extras/office.py` (slide text + speaker notes, slide-number fields dropped); plain text if the PPTX export is refused.
+- Drawings → PNG image. Folders → pointer to `search_drive_files` with `'<id>' in parents`. Forms/Sites/Maps/Jamboards/Apps Script → clear refusal.
+- Only `exportSizeLimitExceeded`, `cannotExportFile`, `cannotDownloadFile` (and a 400 on export = format not offered) count as refusals → smaller-export fallback or one clear message. Rate limits, auth and permission errors and 5xx propagate to upstream's `handle_http_errors`. Hitting our own byte cap on the rich export also triggers the smaller-export fallback.
+- Office ZIP limits, checked before parsing: whole package ≤ `CN_OFFICE_MAX_UNCOMPRESSED_BYTES` (default 256 MB); every part parsed into memory (sharedStrings, styles, each slide) ≤ upstream's `WORKSPACE_MCP_MAX_OFFICE_XML_BYTES` (25 MiB); worksheets are streamed and exempt from the per-part limit. The sheet's declared dimension is ignored (`reset_dimensions`) and at most 5 M cells are visited per workbook, so sparse/wide sheets can't stall the server. Extracted text is capped at 5 M characters. **Non-native files** (PDF, DOCX, XLSX, PPTX, CSV, TXT, images) → `files.get(alt="media")` → same `extract()` pipeline as 5.2.
 
 Export mapping (`auto`):
 

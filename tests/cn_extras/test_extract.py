@@ -47,13 +47,25 @@ class TestOffice:
         for word in ("Inscriptions JMJ 2027", "João", "Brésil"):
             assert word in r.text
 
-    def test_xlsx_reads_every_sheet(self):
+    def test_xlsx_without_openpyxl_falls_back_to_upstream(self, monkeypatch):
+        import builtins
+
+        real_import = builtins.__import__
+
+        def no_openpyxl(name, *args, **kwargs):
+            if name.startswith("openpyxl") or name == "cn_extras.office":
+                raise ImportError(name)
+            return real_import(name, *args, **kwargs)
+
+        monkeypatch.setattr(builtins, "__import__", no_openpyxl)
         r = extract(fx.xlsx_two_sheets(), fx.XLSX, "book.xlsx")
         assert "Sheet one value" in r.text and "Second sheet value" in r.text
+        assert any("openpyxl not installed" in n for n in r.notes)
 
     def test_pptx(self):
         r = extract(fx.pptx_one_slide("Welcome to Paradise"), fx.PPTX, "deck.pptx")
         assert "Welcome to Paradise" in r.text
+        assert "--- slide 1 ---" in r.text
 
     def test_corrupted_docx(self):
         r = extract(b"PK\x03\x04garbage", fx.DOCX, "bad.docx")

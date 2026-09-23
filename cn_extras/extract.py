@@ -153,12 +153,48 @@ def _unsupported(
     )
 
 
+def _xlsx(
+    data: bytes, mime: str, notes: List[str], sheet: Optional[str]
+) -> ExtractResult:
+    try:
+        from cn_extras.office import xlsx_text
+    except ImportError:  # openpyxl is in the optional "cn" extra
+        if sheet:
+            notes.append("sheet selection needs openpyxl; returned every sheet.")
+        notes.append("read without sheet structure (openpyxl not installed).")
+        text = local.office_text(data, mime)
+        if not text:
+            return _unsupported(mime, "the spreadsheet contains no text.", notes)
+        return ExtractResult(
+            kind="text", mime_type=mime, engine="local", text=text, notes=notes
+        )
+    book = xlsx_text(data, sheet)
+    return ExtractResult(
+        kind="text",
+        mime_type=mime,
+        engine="local",
+        text=book.text,
+        notes=notes + book.notes,
+    )
+
+
+def _pptx(data: bytes, mime: str, notes: List[str]) -> ExtractResult:
+    from cn_extras.office import pptx_text
+
+    return ExtractResult(
+        kind="text", mime_type=mime, engine="local", text=pptx_text(data), notes=notes
+    )
+
+
 def extract(
     data: bytes,
     mime_type: Optional[str],
     filename: Optional[str] = None,
     mode: Mode = "auto",
+    *,
+    sheet: Optional[str] = None,
 ) -> ExtractResult:
+    """Extract ``data``. ``sheet`` (number from 1, or name) limits XLSX output."""
     mime = normalize_mime_type(mime_type, filename)
     notes: List[str] = []
     if mode == "ocr":
@@ -174,7 +210,11 @@ def extract(
     try:
         if mime == "application/pdf":
             return _extract_pdf(data, mime, notes)
-        if mime in OFFICE_XML:
+        if mime == XLSX:
+            return _xlsx(data, mime, notes, sheet)
+        if mime == PPTX:
+            return _pptx(data, mime, notes)
+        if mime == DOCX:
             text = local.office_text(data, mime)
             if not text:
                 return _unsupported(mime, "the document contains no text.", notes)
