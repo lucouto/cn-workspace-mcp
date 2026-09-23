@@ -130,7 +130,7 @@ Target: **4 new tools** (`gmail_list_attachments`, `gmail_read_attachment`, `dri
 Input: `message_id` (or `thread_id`).
 Output: per message (`message_id`, sender, date), then for each attachment → `part_id`, `filename`, `mime_type`, human-readable size, and whether it's extractable.
 
-*As built (Phase 1):* `part_id` is the key. Gmail `attachment_id`s are ~600 characters and **rotate between `messages.get` calls**, so they aren't listed; `gmail_read_attachment` re-fetches the message and resolves the current ID from `part_id` (it still accepts `attachment_id`/`filename` as fallbacks). A single-part message's attachment has `part_id: root`. **Pending Luciano's confirmation.**
+*As built (Phase 1):* `part_id` is the key. Gmail `attachment_id`s are ~600 characters and **rotate between `messages.get` calls**, so they aren't listed; `gmail_read_attachment` re-fetches the message and resolves the current ID from `part_id` (it still accepts `attachment_id`/`filename` as fallbacks). A single-part message's attachment has `part_id: root`. Confirmed by Luciano (23 Sept 2026).
 
 Implementation notes:
 

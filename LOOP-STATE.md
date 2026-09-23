@@ -16,7 +16,7 @@ Final gate: full `uv run pytest -q` + `uv run ruff check .` + independent review
 | 8 | Full suite + ruff + reviewer agent | done | 2521 passed / 2 skipped; ruff clean; stdio tools/list shows exactly the 6 intended tools. Reviewer: 9 findings, all fixed with regression tests (23/28 fail on pre-fix code; the rest are baselines). |
 
 ## Needs validation (decisions for Luciano)
-- `gmail_list_attachments` does not print Gmail `attachment_id`s (plan §5.1 lists them). They are ~600 chars and rotate between fetches; `part_id` is the stable key and `gmail_read_attachment` resolves the current ID itself. Keep this deviation?
+- ~~Listing omits Gmail `attachment_id`s, keyed on `part_id`~~ → **confirmed by Luciano** (23 Sept 2026).
 
 ## Review fixes (Phase 1 reviewer agent)
 - Images: bytes/MIME mismatch for non-native Pillow formats (ICO/PPM/TGA/MPO) → always re-encode; pixel-bomb cap (40 MP) checked before decode; JPEG draft decode; no copy.
