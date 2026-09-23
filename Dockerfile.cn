@@ -1,0 +1,59 @@
+# cn-workspace-mcp production image (Coolify). Upstream's Dockerfile is left
+# untouched to keep rebases clean; see docs/DEPLOY.md and FORK_CHANGES.md.
+#
+# Non-secret production settings are baked in here so they can't be forgotten.
+# Secrets and per-deployment values come from Coolify (deploy/coolify.env.example).
+FROM python:3.11-slim
+
+WORKDIR /app
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip install --no-cache-dir uv
+
+COPY . .
+
+# disk: encrypted file store for OAuth sessions; cn: Pillow, openpyxl,
+# pypdfium2, Azure Document Intelligence SDK (OCR stays off unless enabled).
+RUN UV_COMPILE_BYTECODE=1 uv sync --frozen --no-dev --extra disk --extra cn \
+    && /app/.venv/bin/python -m compileall -q -x '/app/\.venv' /app
+
+RUN useradd --create-home --shell /usr/sbin/nologin app \
+    && mkdir -p /data/oauth-proxy /data/fastmcp \
+    && chown -R app:app /app /data \
+    && chmod 700 /data
+
+USER app
+
+# --- fixed production settings (docs/PLAN.md §6-7) ---------------------------
+ENV MCP_ENABLE_OAUTH21=true \
+    WORKSPACE_MCP_STATELESS_MODE=true \
+    WORKSPACE_MCP_OAUTH_PROXY_STORAGE_BACKEND=disk \
+    WORKSPACE_MCP_OAUTH_PROXY_DISK_DIRECTORY=/data/oauth-proxy \
+    FASTMCP_HOME=/data/fastmcp \
+    WORKSPACE_MCP_TRANSPORT=streamable-http \
+    WORKSPACE_MCP_HOST=0.0.0.0 \
+    WORKSPACE_MCP_PORT=8000 \
+    WORKSPACE_MCP_TOOLS=gmail,drive,cn \
+    WORKSPACE_MCP_READ_ONLY=true \
+    WORKSPACE_MCP_DISABLED_TOOLS=get_gmail_message_content,get_gmail_messages_content_batch,get_gmail_attachment_content,get_gmail_thread_content,get_gmail_threads_content_batch,list_gmail_labels,list_gmail_filters,get_drive_file_content,get_drive_file_download_url,list_drive_items,get_drive_file_permissions,check_drive_file_public_access,get_drive_shareable_link \
+    WORKSPACE_MCP_MAX_FILE_BYTES=26214400 \
+    WORKSPACE_MCP_MAX_OFFICE_XML_BYTES=26214400 \
+    CN_ALLOWLIST_ENFORCE=true \
+    CN_DI_ENABLED=false \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+# OAuth sessions (encrypted). Mount a persistent volume here, or every
+# redeploy signs everyone out.
+VOLUME ["/data"]
+
+EXPOSE 8000
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD curl -fsS http://localhost:8000/health || exit 1
+
+# Run the venv's Python directly: `uv run` would try to re-sync at start.
+CMD ["/app/.venv/bin/python", "main.py"]

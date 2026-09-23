@@ -1,5 +1,22 @@
 # LOOP-STATE
 
+## Phase 4 — Google Cloud + Coolify deploy (code side done; account steps are Luciano's)
+
+Checklist: `docs/DEPLOY.md`.
+
+| # | Task | Status | Notes |
+|---|---|---|---|
+| 1 | `Dockerfile.cn` (production defaults baked in, non-root, `/data` volume, bytecode precompiled) | done | built + run locally: refuses to start without allowlist; healthy with it; 5 scopes; 401; sessions survive restart; works with read-only rootfs; no writes outside /data |
+| 2 | `deploy/coolify.env.example` | done | redirect allowlist verified in container (evil 400, Claude 201) |
+| 3 | `cn_extras/admin.py` — check / list / purge (+ tests) | done | `check` decrypts a real server's store; wrong key detected |
+| 4 | `docs/DEPLOY.md`, privacy page draft (FR/EN), admin request note (FR) | done | |
+| 5 | GCP project, Coolify app, DNS, secrets, first connection, acceptance tests | **[Luciano]** | docs/DEPLOY.md §0–§7 |
+
+### Needs validation (Luciano)
+- DEPLOY.md §0 decisions (Internal vs External, domains without Workspace, hostname, Claude callback URLs, privacy page URL/contact).
+- Create + push the integration branch `cn/main` (= cn/phase-4) for Coolify to deploy from.
+
+
 ## Phase 3 — auth hardening
 
 Spec: `docs/PLAN.md` §6 (+ as-built), §9 (allowlist, multi-user isolation), §10 Phase 3.
