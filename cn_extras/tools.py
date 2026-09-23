@@ -353,6 +353,7 @@ def _granted_scopes(service) -> List[str]:
 # Registered through this module so the single "cn" service entry in
 # main.py SERVICE_MODULES loads every cn_extras tool.
 import cn_extras.drive_tools  # noqa: E402,F401
+import cn_extras.privacy  # noqa: E402,F401  (public /privacy page)
 from cn_extras.auth_provider import register_middleware  # noqa: E402
 
 # Also register the allowlist here, not only when the OAuth provider is built:

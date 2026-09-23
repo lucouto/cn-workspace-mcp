@@ -17,7 +17,7 @@ values and secrets: `deploy/coolify.env.example`.
 | gmail.com | **Specific addresses only**, listed in `CN_ALLOWED_EMAILS`. |
 | Hostname | `gws.mcp.cheminneuf.community` (DNS record to the Coolify server). |
 | Claude callback | `https://claude.ai/api/mcp/auth_callback` (hosted Claude), plus Claude Code loopback `http://localhost:*/callback`, `http://127.0.0.1:*/callback`. Source: claude.com/docs/connectors/building/authentication. Already in `deploy/coolify.env.example`, verified against FastMCP's matcher. |
-| Privacy page | **Still open:** URL on cheminneuf.community + contact address (draft: `docs/privacy-page.md`). |
+| Privacy page | **`https://gws.mcp.cheminneuf.community/privacy`**, served by the connector itself (`cn_extras/static/privacy/`, CCN charte, FR/EN). It supplements the CCN general policy (linked), discloses Anthropic/Azure as recipients and the Google *Limited Use* statement. Contact: Secrétariat général – Protection des données. |
 
 Facts from Claude's docs that matter here:
 - On Team, **only an Owner (or Primary Owner)** can add the connector (*Organization settings → Connectors*). Members then click *Connect* individually.
@@ -33,7 +33,7 @@ Google Cloud console → **Google Auth Platform**:
 3. **Branding**:
    - app name "Chemin Neuf – Claude connector";
    - support email and logo;
-   - privacy policy URL (the published `docs/privacy-page.md`);
+   - privacy policy URL: `https://gws.mcp.cheminneuf.community/privacy` (live as soon as the app is deployed);
    - authorised domain `cheminneuf.community`.
 4. **Audience**: **External**, then click **Publish app** → *In production* (never leave it in Testing: 7-day tokens).
 5. **Data access** → add exactly these 5 scopes:

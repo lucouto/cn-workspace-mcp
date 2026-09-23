@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Connecteur Claude – confidentialité</title>
+<meta name="description" content="Confidentialité du connecteur Claude – Google Workspace de la Communauté du Chemin Neuf : données lues, destinataires, conservation, révocation.">
+<meta name="robots" content="index, follow">
+<link rel="icon" href="/privacy/ccn-logo-noir.png">
+<style>
+/* Fonts: free substitutes of the CCN charte (the licensed Century Gothic /
+   Futura may not be embedded in a public page). Self-hosted, SIL OFL 1.1,
+   licences served next to the files. No third-party requests. */
+@font-face{font-family:"Jost";src:url("/privacy/jost-latin-300-normal.woff2") format("woff2");font-weight:300;font-display:swap}
+@font-face{font-family:"Jost";src:url("/privacy/jost-latin-700-normal.woff2") format("woff2");font-weight:700;font-display:swap}
+@font-face{font-family:"Cormorant Garamond";src:url("/privacy/cormorant-garamond-latin-400-normal.woff2") format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:"Cormorant Garamond";src:url("/privacy/cormorant-garamond-latin-400-italic.woff2") format("woff2");font-weight:400;font-style:italic;font-display:swap}
+@font-face{font-family:"Cormorant Garamond";src:url("/privacy/cormorant-garamond-latin-600-normal.woff2") format("woff2");font-weight:600;font-display:swap}
+@font-face{font-family:"Playfair Display";src:url("/privacy/playfair-display-latin-400-italic.woff2") format("woff2");font-weight:400;font-style:italic;font-display:swap}
+
+/* CCN tokens (charte-graphique-ccn, tokens.md). Edition colour: terre cuite,
+   next in the rotation after the revue n°3's ocre. Components use tokens only. */
+:root{
+  --ccn-encre:#231F20;
+  --ccn-blanc:#FFFFFF;
+  --ccn-creme:#FBF3E7;
+  --ccn-edition:#E3877C;          /* terre cuite: fills and rules, never text on white */
+  --ccn-filet:#E4D5BF;
+  --ccn-texte-doux:#6E5D4A;
+  --ccn-lien:#AE6E20;
+  --ccn-surface-2:#F5EADA;
+  --ccn-fond:var(--ccn-creme);
+  --ccn-surface:var(--ccn-blanc);
+  --ccn-texte:var(--ccn-encre);
+  --ccn-sans:Jost,"Century Gothic",Avenir,"Trebuchet MS",sans-serif;
+  --ccn-serif:"Cormorant Garamond","EB Garamond",Georgia,serif;
+  --ccn-serif-titre:"Playfair Display","Cormorant Garamond",Georgia,serif;
+  --ccn-lettrage-libelle:.14em;
+  color-scheme:light dark;
+}
+/* Dark theme: derived screen extension, not part of the printed charte. */
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ccn-fond:#1B1714;--ccn-surface:#241F1A;--ccn-surface-2:#2C251E;
+    --ccn-texte:#F4ECE0;--ccn-texte-doux:#BCAB96;--ccn-filet:#3B322A;--ccn-lien:#E7B570;
+  }
+}
+:root[data-theme="dark"]{
+  --ccn-fond:#1B1714;--ccn-surface:#241F1A;--ccn-surface-2:#2C251E;
+  --ccn-texte:#F4ECE0;--ccn-texte-doux:#BCAB96;--ccn-filet:#3B322A;--ccn-lien:#E7B570;
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--ccn-fond);color:var(--ccn-texte);font-family:var(--ccn-serif);font-size:1.15rem;line-height:1.6}
+.bandeau{height:8px;background:var(--ccn-edition)}
+.page{max-width:46rem;margin:0 auto;padding:2rem 1rem 3rem}
+
+/* Header band: the logo needs a plain ground from the charte's list; white
+   in every theme (cream isn't on that list). Protection zone = padding. */
+.entete{background:var(--ccn-blanc);color:var(--ccn-encre);border-bottom:1px solid var(--ccn-filet);padding:2rem 1rem 1.75rem}
+.logo{display:block;width:11rem;max-width:55%;margin:0 auto 1rem;padding:1.1rem}
+.logo img{display:block;width:100%;height:auto}
+
+.titre{text-align:center;text-wrap:balance;margin:0}
+.titre .l1{display:block;font-family:var(--ccn-sans);font-weight:700;font-size:clamp(1.7rem,5vw,2.4rem);line-height:1.14}
+.titre .l2{display:block;font-family:var(--ccn-serif-titre);font-style:italic;font-weight:400;font-size:clamp(1.5rem,4.4vw,2.1rem);line-height:1.2}
+.chapeau{font-family:var(--ccn-sans);font-weight:300;font-size:1.12rem;line-height:1.55;text-align:justify;hyphens:auto;margin:0 0 1rem}
+.meta{font-family:var(--ccn-sans);font-weight:300;font-size:.8rem;color:var(--ccn-texte-doux);text-align:center;margin:0 0 2rem}
+
+nav.langues{display:flex;justify-content:center;gap:.5rem;margin:0 0 2.5rem}
+nav.langues a{font-family:var(--ccn-sans);font-weight:700;font-size:.78rem;letter-spacing:var(--ccn-lettrage-libelle);text-transform:uppercase;color:var(--ccn-texte);text-decoration:none;border:1px solid var(--ccn-filet);border-radius:999px;padding:.35rem 1rem}
+nav.langues a:hover,nav.langues a:focus-visible{border-color:var(--ccn-edition)}
+
+section{background:var(--ccn-surface);border:1px solid var(--ccn-filet);border-radius:14px;padding:1.4rem 1.4rem .6rem;margin:0 0 1.1rem}
+/* Section label: CCN rubric tab, full capitals, ink on the edition colour
+   (white on terre cuite would fall under 4.5:1). */
+.rubrique{display:inline-block;background:var(--ccn-edition);color:var(--ccn-encre);font-family:var(--ccn-sans);font-weight:700;font-size:.78rem;letter-spacing:var(--ccn-lettrage-libelle);text-transform:uppercase;padding:.36rem 1.2rem .36rem 1.4rem;margin:0 0 .9rem -1.4rem;border-radius:0 999px 999px 0}
+section p{margin:0 0 .8rem}
+section ul{margin:0 0 .8rem;padding-left:1.2rem}
+section li{margin:0 0 .35rem}
+strong{font-weight:600}
+code{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:.82em;background:var(--ccn-surface-2);padding:.08em .35em;border-radius:4px;white-space:nowrap}
+a{color:var(--ccn-lien);text-underline-offset:.15em}
+.adresse{font-style:normal}
+
+.langue{margin-top:3rem}
+.langue h2{font-family:var(--ccn-sans);font-weight:700;font-size:.85rem;letter-spacing:var(--ccn-lettrage-libelle);text-transform:uppercase;text-align:center;color:var(--ccn-texte-doux);margin:0 0 1.5rem}
+.langue h2::before,.langue h2::after{content:"";display:inline-block;width:2.5rem;height:1px;background:var(--ccn-edition);vertical-align:middle;margin:0 .75rem}
+
+footer{font-family:var(--ccn-sans);font-weight:300;font-size:.8rem;color:var(--ccn-texte-doux);border-top:1px solid var(--ccn-filet);margin-top:2.5rem;padding-top:.75rem;display:flex;flex-wrap:wrap;gap:.25rem 1rem;justify-content:space-between}
+@media (max-width:520px){section{padding:1.1rem 1rem .4rem}.rubrique{margin-left:-1rem;padding-left:1rem}.chapeau{text-align:left}}
+@media print{.bandeau,nav.langues{display:none}.entete{border-bottom:0}body{background:var(--ccn-blanc)}section{break-inside:avoid;border-color:var(--ccn-filet)}}
+</style>
+</head>
+<body>
+<div class="bandeau" aria-hidden="true"></div>
+<header class="entete">
+  <a class="logo" href="https://www.chemin-neuf.fr/" aria-label="Communauté du Chemin Neuf">
+    <img src="/privacy/ccn-logo-noir.png" width="560" height="420" alt="Communauté du Chemin Neuf">
+  </a>
+  <h1 class="titre"><span class="l1">Connecteur Claude – Google Workspace</span><span class="l2">Confidentialité et données</span></h1>
+</header>
+<main class="page">
+  <p class="chapeau">Ce connecteur permet à Claude, l’assistant d’IA utilisé par la Communauté, de lire à votre demande vos pièces jointes Gmail et vos fichiers Google Drive. Cette page complète, pour ce seul service, la <a href="https://dam.chemin-neuf.net/wp-content/uploads/2020/09/politique_confidentialite_ccn_fr.pdf">politique de confidentialité et de protection des données de la Communauté du Chemin Neuf</a>.</p>
+  <p class="meta">Version 1.0 · 23 septembre 2026</p>
+
+  <nav class="langues" aria-label="Langue"><a href="#fr" hreflang="fr">Français</a><a href="#en" hreflang="en">English</a></nav>
+
+  <div id="fr" lang="fr">
+    <section>
+      <span class="rubrique">Ce que fait le connecteur</span>
+      <p>À votre demande, il permet à Claude, l’assistant d’IA d’Anthropic utilisé par la Communauté dans le cadre de son abonnement Claude Team, de lire le contenu de vos pièces jointes Gmail et de vos fichiers Google Drive : Docs, Sheets, Slides, PDF et fichiers Office. Claude peut ainsi les résumer ou en extraire des informations.</p>
+    </section>
+
+    <section>
+      <span class="rubrique">Données Google utilisées</span>
+      <ul>
+        <li>Lecture seule de Gmail (<code>gmail.readonly</code>) et de Google Drive (<code>drive.readonly</code>), ainsi que votre adresse e-mail et votre nom.</li>
+        <li>Le connecteur ne peut ni envoyer, ni modifier, ni supprimer quoi que ce soit.</li>
+        <li>Il ne lit que ce que vous demandez à Claude de lire.</li>
+      </ul>
+    </section>
+
+    <section>
+      <span class="rubrique">Qui reçoit ces données</span>
+      <ul>
+        <li>Le contenu lu est transmis <strong>à Claude (Anthropic)</strong> pour répondre à votre demande, dans la conversation où vous l’avez demandé. Il est traité selon les conditions commerciales de l’abonnement Claude de la Communauté.</li>
+        <li>Pour les documents scannés, et seulement si la reconnaissance de texte est activée, le fichier peut être envoyé à <strong>Microsoft Azure AI Document Intelligence (région UE)</strong>. Microsoft supprime le résultat dès la fin du traitement, et en tout cas sous 24 heures.</li>
+        <li>Aucune autre transmission. Aucune vente, aucune publicité, aucun usage pour entraîner des modèles d’IA.</li>
+      </ul>
+    </section>
+
+    <section>
+      <span class="rubrique">Ce qui est conservé</span>
+      <ul>
+        <li>Uniquement vos jetons de connexion OAuth, chiffrés, sur un serveur de la Communauté hébergé en Europe.</li>
+        <li>Aucun contenu d’e-mail ni de fichier n’y est enregistré : les fichiers sont lus en mémoire, le temps de la requête.</li>
+        <li>Les journaux techniques contiennent votre adresse, des identifiants de fichiers et des tailles, jamais de contenu ni d’objet de message.</li>
+      </ul>
+    </section>
+
+    <section>
+      <span class="rubrique">Qui peut l’utiliser</span>
+      <p>Uniquement les comptes Google Workspace des domaines de la Communauté (cheminneuf.community, chemin-neuf.org, wyd2027.org) et quelques adresses expressément autorisées. Tout autre compte est refusé dès la connexion.</p>
+    </section>
+
+    <section>
+      <span class="rubrique">Usage limité des données Google</span>
+      <p>L’utilisation et le transfert à toute autre application des informations reçues des API Google respectent les <a href="https://developers.google.com/terms/api-services-user-data-policy" hreflang="en">règles relatives aux données utilisateur des services d’API Google</a>, y compris les exigences d’usage limité (<i>Limited Use</i>).</p>
+    </section>
+
+    <section>
+      <span class="rubrique">Révoquer l’accès, effacer vos données</span>
+      <ul>
+        <li>Déconnectez le connecteur dans les réglages de Claude, puis retirez l’application sur <a href="https://myaccount.google.com/permissions">myaccount.google.com/permissions</a>.</li>
+        <li>Sur simple demande, l’administrateur supprime immédiatement vos jetons enregistrés.</li>
+        <li>Vos autres droits (accès, rectification, opposition) s’exercent comme indiqué dans la politique générale de la Communauté.</li>
+      </ul>
+    </section>
+
+    <section>
+      <span class="rubrique">Contact</span>
+      <address class="adresse">Communauté du Chemin Neuf – Secrétariat général<br>Protection des données<br>59 montée du Chemin Neuf<br>69005 Lyon, France</address>
+      <p></p>
+    </section>
+  </div>
+
+  <div id="en" lang="en" class="langue">
+    <h2>English</h2>
+    <section>
+      <span class="rubrique">What the connector does</span>
+      <p>At your request, it lets Claude, Anthropic’s AI assistant used by the Community under its Claude Team subscription, read the content of your Gmail attachments and Google Drive files: Docs, Sheets, Slides, PDF and Office files. Claude can then summarise them or extract information. This page supplements, for this service only, the Chemin Neuf Community’s <a href="https://dam.chemin-neuf.net/wp-content/uploads/2020/09/politique_confidentialite_ccn_fr.pdf" hreflang="fr">general privacy policy</a> (in French).</p>
+    </section>
+
+    <section>
+      <span class="rubrique">Google data used</span>
+      <ul>
+        <li>Read-only Gmail (<code>gmail.readonly</code>) and Google Drive (<code>drive.readonly</code>), plus your e-mail address and name.</li>
+        <li>The connector cannot send, change or delete anything.</li>
+        <li>It only reads what you ask Claude to read.</li>
+      </ul>
+    </section>
+
+    <section>
+      <span class="rubrique">Who receives this data</span>
+      <ul>
+        <li>The content read is sent <strong>to Claude (Anthropic)</strong> to answer your request, in the conversation where you asked for it. It is processed under the commercial terms of the Community’s Claude subscription.</li>
+        <li>For scanned documents, and only if text recognition is enabled, the file may be sent to <strong>Microsoft Azure AI Document Intelligence (EU region)</strong>. Microsoft deletes the result as soon as processing ends, and in any case within 24 hours.</li>
+        <li>Nothing else is shared: no sale, no advertising, no use for training AI models.</li>
+      </ul>
+    </section>
+
+    <section>
+      <span class="rubrique">What is stored</span>
+      <ul>
+        <li>Only your OAuth sign-in tokens, encrypted, on a Community server hosted in Europe.</li>
+        <li>No e-mail or file content is stored there: files are read in memory for the duration of the request.</li>
+        <li>Technical logs contain your address, file IDs and sizes, never content or subjects.</li>
+      </ul>
+    </section>
+
+    <section>
+      <span class="rubrique">Who can use it</span>
+      <p>Only Google Workspace accounts of the Community’s domains (cheminneuf.community, chemin-neuf.org, wyd2027.org) and a few explicitly allowed addresses. Any other account is refused at sign-in.</p>
+    </section>
+
+    <section>
+      <span class="rubrique">Limited Use of Google data</span>
+      <p>Use and transfer to any other app of information received from Google APIs will adhere to the <a href="https://developers.google.com/terms/api-services-user-data-policy">Google API Services User Data Policy</a>, including the Limited Use requirements.</p>
+    </section>
+
+    <section>
+      <span class="rubrique">Revoking access, deleting your data</span>
+      <ul>
+        <li>Disconnect the connector in Claude’s settings, then remove the app at <a href="https://myaccount.google.com/permissions">myaccount.google.com/permissions</a>.</li>
+        <li>On request, the administrator deletes your stored tokens immediately.</li>
+        <li>Your other rights (access, rectification, objection) are exercised as described in the Community’s general policy.</li>
+      </ul>
+    </section>
+
+    <section>
+      <span class="rubrique">Contact</span>
+      <address class="adresse">Communauté du Chemin Neuf – Secrétariat général<br>Data protection<br>59 montée du Chemin Neuf<br>69005 Lyon, France</address>
+      <p></p>
+    </section>
+  </div>
+
+  <footer>
+    <span>Communauté du Chemin Neuf</span>
+    <span>Polices libres (SIL OFL 1.1) : <a href="/privacy/OFL-jost.txt">Jost</a>, <a href="/privacy/OFL-cormorant-garamond.txt">Cormorant Garamond</a>, <a href="/privacy/OFL-playfair-display.txt">Playfair Display</a></span>
+  </footer>
+</main>
+</body>
+</html>
