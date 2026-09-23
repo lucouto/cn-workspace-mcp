@@ -1,4 +1,5 @@
-"""Public privacy page for the Google OAuth consent screen (docs/DEPLOY.md §1).
+"""Public pages: /privacy (Google OAuth consent screen, docs/DEPLOY.md §1) and
+/guide (setup guide for Team members). Shared assets live under /privacy/.
 
 Served at /privacy by the connector itself, so its URL sits under the app's
 authorised domain (cheminneuf.community). Only the files shipped in
@@ -20,6 +21,7 @@ _MEDIA_TYPES = {
     ".woff2": "font/woff2",
     ".png": "image/png",
     ".txt": "text/plain; charset=utf-8",
+    ".css": "text/css; charset=utf-8",
 }
 
 # Exact file names allowed, fixed at import time.
@@ -29,9 +31,11 @@ _FILES = {
     if p.is_file() and p.suffix in _MEDIA_TYPES and p.name != "index.html"
 }
 
+GUIDE = Path(__file__).parent / "static" / "guide" / "index.html"
+
 _HEADERS = {
     "Content-Security-Policy": (
-        "default-src 'none'; style-src 'unsafe-inline'; img-src 'self'; "
+        "default-src 'none'; style-src 'self'; img-src 'self'; "
         "font-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
     ),
     "X-Content-Type-Options": "nosniff",
@@ -50,6 +54,12 @@ def _file(path: Path) -> FileResponse:
 @server.custom_route("/privacy", methods=["GET", "HEAD"])
 async def privacy_page(request: Request):
     return _file(STATIC_DIR / "index.html")
+
+
+@server.custom_route("/guide", methods=["GET", "HEAD"])
+async def guide_page(request: Request):
+    """Setup guide for Team members (same look and assets as /privacy)."""
+    return _file(GUIDE)
 
 
 @server.custom_route("/privacy/{name}", methods=["GET", "HEAD"])

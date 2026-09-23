@@ -1,0 +1,98 @@
+/* Shared styles for /privacy and /guide. Cached for a day: bump ?v= in both
+   pages' <link> when this file changes. */
+/* Fonts: free substitutes of the CCN charte (the licensed Century Gothic /
+   Futura may not be embedded in a public page). Self-hosted, SIL OFL 1.1,
+   licences served next to the files. No third-party requests. */
+@font-face{font-family:"Jost";src:url("/privacy/jost-latin-300-normal.woff2") format("woff2");font-weight:300;font-display:swap}
+@font-face{font-family:"Jost";src:url("/privacy/jost-latin-700-normal.woff2") format("woff2");font-weight:700;font-display:swap}
+@font-face{font-family:"Cormorant Garamond";src:url("/privacy/cormorant-garamond-latin-400-normal.woff2") format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:"Cormorant Garamond";src:url("/privacy/cormorant-garamond-latin-400-italic.woff2") format("woff2");font-weight:400;font-style:italic;font-display:swap}
+@font-face{font-family:"Cormorant Garamond";src:url("/privacy/cormorant-garamond-latin-600-normal.woff2") format("woff2");font-weight:600;font-display:swap}
+@font-face{font-family:"Playfair Display";src:url("/privacy/playfair-display-latin-400-italic.woff2") format("woff2");font-weight:400;font-style:italic;font-display:swap}
+
+/* CCN tokens (charte-graphique-ccn, tokens.md). Edition colour: terre cuite,
+   next in the rotation after the revue n°3's ocre. Components use tokens only. */
+:root{
+  --ccn-encre:#231F20;
+  --ccn-blanc:#FFFFFF;
+  --ccn-creme:#FBF3E7;
+  --ccn-edition:#E3877C;          /* terre cuite: fills and rules, never text on white */
+  --ccn-filet:#E4D5BF;
+  --ccn-texte-doux:#6E5D4A;
+  --ccn-lien:#AE6E20;
+  --ccn-surface-2:#F5EADA;
+  --ccn-fond:var(--ccn-creme);
+  --ccn-surface:var(--ccn-blanc);
+  --ccn-texte:var(--ccn-encre);
+  --ccn-sans:Jost,"Century Gothic",Avenir,"Trebuchet MS",sans-serif;
+  --ccn-serif:"Cormorant Garamond","EB Garamond",Georgia,serif;
+  --ccn-serif-titre:"Playfair Display","Cormorant Garamond",Georgia,serif;
+  --ccn-lettrage-libelle:.14em;
+  color-scheme:light dark;
+}
+/* Dark theme: derived screen extension, not part of the printed charte. */
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ccn-fond:#1B1714;--ccn-surface:#241F1A;--ccn-surface-2:#2C251E;
+    --ccn-texte:#F4ECE0;--ccn-texte-doux:#BCAB96;--ccn-filet:#3B322A;--ccn-lien:#E7B570;
+  }
+}
+:root[data-theme="dark"]{
+  --ccn-fond:#1B1714;--ccn-surface:#241F1A;--ccn-surface-2:#2C251E;
+  --ccn-texte:#F4ECE0;--ccn-texte-doux:#BCAB96;--ccn-filet:#3B322A;--ccn-lien:#E7B570;
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--ccn-fond);color:var(--ccn-texte);font-family:var(--ccn-serif);font-size:1.15rem;line-height:1.6}
+.bandeau{height:8px;background:var(--ccn-edition)}
+.page{max-width:46rem;margin:0 auto;padding:2rem 1rem 3rem}
+
+/* Header band: the logo needs a plain ground from the charte's list; white
+   in every theme (cream isn't on that list). Protection zone = padding. */
+.entete{background:var(--ccn-blanc);color:var(--ccn-encre);border-bottom:1px solid var(--ccn-filet);padding:2rem 1rem 1.75rem}
+.logo{display:block;width:11rem;max-width:55%;margin:0 auto 1rem;padding:1.1rem}
+.logo img{display:block;width:100%;height:auto}
+
+.titre{text-align:center;text-wrap:balance;margin:0}
+.titre .l1{display:block;font-family:var(--ccn-sans);font-weight:700;font-size:clamp(1.7rem,5vw,2.4rem);line-height:1.14}
+.titre .l2{display:block;font-family:var(--ccn-serif-titre);font-style:italic;font-weight:400;font-size:clamp(1.5rem,4.4vw,2.1rem);line-height:1.2}
+.chapeau{font-family:var(--ccn-sans);font-weight:300;font-size:1.12rem;line-height:1.55;text-align:justify;hyphens:auto;margin:0 0 1rem}
+.meta{font-family:var(--ccn-sans);font-weight:300;font-size:.8rem;color:var(--ccn-texte-doux);text-align:center;margin:0 0 2rem}
+
+nav.langues{display:flex;justify-content:center;gap:.5rem;margin:0 0 2.5rem}
+nav.langues a{font-family:var(--ccn-sans);font-weight:700;font-size:.78rem;letter-spacing:var(--ccn-lettrage-libelle);text-transform:uppercase;color:var(--ccn-texte);text-decoration:none;border:1px solid var(--ccn-filet);border-radius:999px;padding:.35rem 1rem}
+nav.langues a:hover,nav.langues a:focus-visible{border-color:var(--ccn-edition)}
+
+section{background:var(--ccn-surface);border:1px solid var(--ccn-filet);border-radius:14px;padding:1.4rem 1.4rem .6rem;margin:0 0 1.1rem}
+/* Section label: CCN rubric tab, full capitals, ink on the edition colour
+   (white on terre cuite would fall under 4.5:1). */
+.rubrique{display:inline-block;background:var(--ccn-edition);color:var(--ccn-encre);font-family:var(--ccn-sans);font-weight:700;font-size:.78rem;letter-spacing:var(--ccn-lettrage-libelle);text-transform:uppercase;padding:.36rem 1.2rem .36rem 1.4rem;margin:0 0 .9rem -1.4rem;border-radius:0 999px 999px 0}
+section p{margin:0 0 .8rem}
+section ul{margin:0 0 .8rem;padding-left:1.2rem}
+section li{margin:0 0 .35rem}
+strong{font-weight:600}
+code{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:.82em;background:var(--ccn-surface-2);padding:.08em .35em;border-radius:4px;white-space:nowrap}
+a{color:var(--ccn-lien);text-underline-offset:.15em}
+.adresse{font-style:normal}
+
+.langue{margin-top:3rem}
+.langue h2{font-family:var(--ccn-sans);font-weight:700;font-size:.85rem;letter-spacing:var(--ccn-lettrage-libelle);text-transform:uppercase;text-align:center;color:var(--ccn-texte-doux);margin:0 0 1.5rem}
+.langue h2::before,.langue h2::after{content:"";display:inline-block;width:2.5rem;height:1px;background:var(--ccn-edition);vertical-align:middle;margin:0 .75rem}
+
+footer{font-family:var(--ccn-sans);font-weight:300;font-size:.8rem;color:var(--ccn-texte-doux);border-top:1px solid var(--ccn-filet);margin-top:2.5rem;padding-top:.75rem;display:flex;flex-wrap:wrap;gap:.25rem 1rem;justify-content:space-between}
+@media (max-width:520px){section{padding:1.1rem 1rem .4rem}.rubrique{margin-left:-1rem;padding-left:1rem}.chapeau{text-align:left}}
+@media print{.bandeau,nav.langues{display:none}.entete{border-bottom:0}body{background:var(--ccn-blanc)}section{break-inside:avoid;border-color:var(--ccn-filet)}}
+
+/* --- guide page ---------------------------------------------------------- */
+ol.etapes{list-style:none;counter-reset:etape;margin:0;padding:0}
+ol.etapes>li{counter-increment:etape;position:relative;padding-left:3rem;margin:0 0 1.1rem}
+ol.etapes>li::before{content:counter(etape);position:absolute;left:0;top:.05rem;width:2rem;height:2rem;border-radius:999px;background:var(--ccn-edition);color:var(--ccn-encre);font-family:var(--ccn-sans);font-weight:700;font-size:1rem;line-height:2rem;text-align:center}
+ol.etapes>li>strong:first-child{display:block;font-family:var(--ccn-sans);font-weight:700;font-size:1.05rem;margin-bottom:.15rem}
+.libelle{font-family:var(--ccn-sans);font-weight:700;font-size:.92em;background:var(--ccn-surface-2);border:1px solid var(--ccn-filet);border-radius:6px;padding:.02em .4em;white-space:nowrap}
+@media (max-width:520px){.libelle{white-space:normal;overflow-wrap:anywhere;-webkit-box-decoration-break:clone;box-decoration-break:clone}}
+.encart{border-left:4px solid var(--ccn-edition);background:var(--ccn-surface-2);border-radius:0 10px 10px 0;padding:.75rem 1rem;margin:.4rem 0 .9rem}
+.encart p{margin:0 0 .4rem}.encart p:last-child{margin:0}
+.exemple{font-family:var(--ccn-sans);font-weight:300;font-size:1rem;background:var(--ccn-surface-2);border-radius:10px;padding:.55rem .9rem;margin:.35rem 0}
+dl.depannage dt{font-family:var(--ccn-sans);font-weight:700;font-size:1rem;margin:.9rem 0 .2rem}
+dl.depannage dd{margin:0 0 .5rem}

@@ -86,6 +86,10 @@ In the Coolify logs, check for:
    - Accept the 5 scopes.
 3. In a chat, ask Claude to call **whoami**. You should see your address and the 5 scopes.
 
+## 5b. Onboarding other Team members
+
+Send them **https://gws.mcp.cheminneuf.community/guide** (FR/EN, CCN charte): connect step by step (incl. the Google "unverified app" screen and ticking every permission box), a whoami test, examples, troubleshooting, disconnecting. Source: `cn_extras/static/guide/index.html`. It assumes the connector is named **"GWS mcp"** in Organization settings and that the consent-screen app name is **cheminneuf.community**: update the page if either changes. Styles are shared with `/privacy` in `/privacy/ccn-page.css` (cached a day: bump `?v=` in both pages when it changes).
+
 ## 6. Acceptance tests (PLAN §9) [You, 30 min]
 
 | # | Test | Expected |

@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GWS mcp – installer dans Claude</title>
+<meta name="description" content="Guide pas à pas pour connecter le connecteur GWS mcp (Gmail et Google Drive en lecture seule) à Claude, pour les membres de l’équipe Claude de la Communauté du Chemin Neuf.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="/privacy/ccn-logo-noir.png">
+<link rel="stylesheet" href="/privacy/ccn-page.css?v=2">
+</head>
+<body>
+<div class="bandeau" aria-hidden="true"></div>
+<header class="entete">
+  <a class="logo" href="https://www.chemin-neuf.fr/" aria-label="Communauté du Chemin Neuf">
+    <img src="/privacy/ccn-logo-noir.png" width="560" height="420" alt="Communauté du Chemin Neuf">
+  </a>
+  <h1 class="titre"><span class="l1">Connecteur GWS mcp</span><span class="l2">Installer et utiliser dans Claude</span></h1>
+</header>
+<main class="page">
+  <p class="chapeau">GWS mcp permet à Claude de <strong>lire</strong> le contenu de vos pièces jointes Gmail et de vos fichiers Google Drive (PDF, Word, Excel, PowerPoint, Google Docs, Sheets, Slides), pour les résumer ou en extraire des informations. Il ne peut ni envoyer, ni modifier, ni supprimer quoi que ce soit. Comptez cinq minutes, une seule fois.</p>
+  <p class="meta">Version 1.0 · 23 septembre 2026</p>
+
+  <nav class="langues" aria-label="Langue"><a href="#fr" hreflang="fr">Français</a><a href="#en" hreflang="en">English</a></nav>
+
+  <div id="fr" lang="fr">
+    <section>
+      <span class="rubrique">Avant de commencer</span>
+      <ul>
+        <li>Vous êtes membre de l’équipe <strong>Claude Team</strong> de la Communauté.</li>
+        <li>Vous avez un compte Google de la Communauté : <strong>@cheminneuf.community</strong>, <strong>@chemin-neuf.org</strong> ou <strong>@wyd2027.org</strong>. Une adresse personnelle (gmail.com…) ne fonctionne que si l’administrateur l’a autorisée.</li>
+        <li>Faites la première connexion sur un <strong>ordinateur</strong>, dans votre navigateur, sur <a href="https://claude.ai">claude.ai</a>. Ensuite, le connecteur marche aussi dans l’application Claude sur téléphone.</li>
+      </ul>
+    </section>
+
+    <section>
+      <span class="rubrique">Connecter GWS mcp, pas à pas</span>
+      <ol class="etapes">
+        <li><strong>Ouvrir les connecteurs</strong>Dans Claude, ouvrez le menu <span class="libelle">Customize</span> puis <span class="libelle">Connectors</span>. Selon la langue de Claude, ces libellés peuvent être traduits (par exemple « Personnaliser » › « Connecteurs »).</li>
+        <li><strong>Trouver GWS mcp</strong>Dans la liste, repérez <span class="libelle">GWS mcp</span>, avec l’étiquette <span class="libelle">Custom</span>. S’il n’apparaît pas, écrivez à l’administrateur : il doit d’abord l’ajouter pour l’organisation.</li>
+        <li><strong>Cliquer sur Connect</strong>Une fenêtre Google s’ouvre.</li>
+        <li><strong>Choisir votre compte de la Communauté</strong>Sélectionnez votre compte <strong>@cheminneuf.community</strong>, <strong>@chemin-neuf.org</strong> ou <strong>@wyd2027.org</strong>, pas un compte personnel. Un autre compte serait refusé (« Access not allowed »).</li>
+        <li><strong>Passer l’avertissement de Google</strong>Google affiche « <em>Google n’a pas validé cette application</em> ». C’est normal : c’est un outil interne de la Communauté, qui n’a pas été soumis à la validation publique de Google. Cliquez sur <span class="libelle">Paramètres avancés</span>, puis sur <span class="libelle">Accéder à cheminneuf.community (non sécurisé)</span>.
+          <div class="encart"><p>L’application affichée s’appelle <strong>cheminneuf.community</strong>. Si vous voyez un autre nom, arrêtez et prévenez l’administrateur.</p></div>
+        </li>
+        <li><strong>Cocher toutes les autorisations</strong>Google liste ce que le connecteur pourra faire. <strong>Cochez toutes les cases</strong>, en particulier la lecture de Gmail et la lecture de Google Drive, puis cliquez sur <span class="libelle">Continuer</span>.
+          <div class="encart"><p>Si une case reste décochée, le connecteur ne pourra pas lire vos pièces jointes ou vos fichiers. Tout est en <strong>lecture seule</strong>.</p></div>
+        </li>
+        <li><strong>Revenir dans Claude</strong>GWS mcp apparaît maintenant comme connecté. C’est terminé.</li>
+      </ol>
+    </section>
+
+    <section>
+      <span class="rubrique">Vérifier que tout marche</span>
+      <ol class="etapes">
+        <li><strong>Ouvrir une nouvelle conversation</strong>Dans le menu <span class="libelle">Search and tools</span> (sous la zone de saisie), vérifiez que <span class="libelle">GWS mcp</span> est activé.</li>
+        <li><strong>Demander un test</strong>Écrivez :
+          <p class="exemple">Utilise l’outil whoami de GWS mcp pour vérifier ma connexion.</p>
+          Claude vous demande d’autoriser l’outil : choisissez <span class="libelle">Allow once</span> (une fois) ou <span class="libelle">Allow always</span> (toujours, pour cet outil). Claude doit afficher votre adresse et les autorisations accordées.</li>
+      </ol>
+    </section>
+
+    <section>
+      <span class="rubrique">Exemples d’utilisation</span>
+      <p class="exemple">Résume la pièce jointe du dernier mail de Marie.</p>
+      <p class="exemple">Lis les trois tableaux joints au mail « listes » et dis-moi qui apparaît dans plusieurs listes.</p>
+      <p class="exemple">Cherche dans mon Drive le compte rendu du conseil de septembre et fais-en une synthèse.</p>
+      <p class="exemple">Lis toutes les feuilles du tableur « Inscriptions JMJ » et compte les inscrits par pays.</p>
+      <p class="exemple">Lis la présentation « Week-end » avec les notes de l’orateur.</p>
+      <p>Pour un long document, Claude le lit par morceaux : demandez-lui de « continuer la lecture » si besoin.</p>
+    </section>
+
+    <section>
+      <span class="rubrique">Bon à savoir</span>
+      <ul>
+        <li><strong>Seulement vos données.</strong> Chacun se connecte avec son propre compte : Claude ne voit que votre propre boîte mail et votre propre Drive (et les fichiers partagés avec vous).</li>
+        <li><strong>Prudence avec les pièces jointes reçues.</strong> Un document peut contenir des instructions écrites pour tromper une IA. Claude les ignore, mais gardez un œil critique sur les réponses, surtout pour des documents d’inconnus.</li>
+        <li><strong>PDF scannés.</strong> Un scan sans texte peut ne pas être lisible. Demandez alors à Claude d’« afficher les pages en images ».</li>
+        <li><strong>Confidentialité.</strong> Ce qui est lu est transmis à Claude pour vous répondre. Détails : <a href="/privacy">page de confidentialité</a>.</li>
+      </ul>
+    </section>
+
+    <section>
+      <span class="rubrique">En cas de problème</span>
+      <dl class="depannage">
+        <dt>« Access not allowed » ou « Accès refusé »</dt>
+        <dd>Vous vous êtes connecté avec un compte qui n’est pas autorisé. Déconnectez GWS mcp et recommencez avec votre compte de la Communauté. Si c’est bien votre compte de la Communauté, prévenez l’administrateur.</dd>
+        <dt>« Error 400: admin_policy_enforced »</dt>
+        <dd>L’administrateur Google Workspace de votre domaine doit d’abord autoriser l’application. Prévenez l’administrateur du connecteur, qui fera la demande.</dd>
+        <dt>Claude dit qu’il manque des autorisations</dt>
+        <dd>Une case n’a pas été cochée à l’étape 6. Déconnectez GWS mcp (<span class="libelle">Customize</span> › <span class="libelle">Connectors</span> › GWS mcp › <span class="libelle">Disconnect</span>), puis reconnectez-vous en cochant toutes les cases.</dd>
+        <dt>GWS mcp n’apparaît pas dans la liste</dt>
+        <dd>Il n’a pas encore été ajouté pour l’organisation, ou vous n’êtes pas dans l’équipe Claude de la Communauté. Écrivez à l’administrateur.</dd>
+        <dt>Autre erreur</dt>
+        <dd>Notez l’heure et le message exact, et envoyez-les à l’administrateur.</dd>
+      </dl>
+    </section>
+
+    <section>
+      <span class="rubrique">Se déconnecter</span>
+      <ol class="etapes">
+        <li><strong>Dans Claude</strong><span class="libelle">Customize</span> › <span class="libelle">Connectors</span> › GWS mcp › <span class="libelle">Disconnect</span>.</li>
+        <li><strong>Chez Google</strong>Sur <a href="https://myaccount.google.com/permissions">myaccount.google.com/permissions</a>, retirez l’accès de <strong>cheminneuf.community</strong>.</li>
+      </ol>
+    </section>
+  </div>
+
+  <div id="en" lang="en" class="langue">
+    <h2>English</h2>
+    <section>
+      <span class="rubrique">What it is</span>
+      <p>GWS mcp lets Claude <strong>read</strong> the content of your Gmail attachments and Google Drive files (PDF, Word, Excel, PowerPoint, Google Docs, Sheets, Slides) to summarise them or extract information. It cannot send, change or delete anything. Setup takes five minutes, once.</p>
+    </section>
+
+    <section>
+      <span class="rubrique">Before you start</span>
+      <ul>
+        <li>You are a member of the Community’s <strong>Claude Team</strong>.</li>
+        <li>You have a Community Google account: <strong>@cheminneuf.community</strong>, <strong>@chemin-neuf.org</strong> or <strong>@wyd2027.org</strong>. A personal address (gmail.com…) only works if the administrator has allowed it.</li>
+        <li>Do the first connection on a <strong>computer</strong>, in your browser, at <a href="https://claude.ai">claude.ai</a>. Afterwards the connector also works in the Claude mobile app.</li>
+      </ul>
+    </section>
+
+    <section>
+      <span class="rubrique">Connect GWS mcp, step by step</span>
+      <ol class="etapes">
+        <li><strong>Open connectors</strong>In Claude, open <span class="libelle">Customize</span> then <span class="libelle">Connectors</span>.</li>
+        <li><strong>Find GWS mcp</strong>In the list, look for <span class="libelle">GWS mcp</span>, labelled <span class="libelle">Custom</span>. If it isn’t there, ask the administrator: it has to be added for the organisation first.</li>
+        <li><strong>Click Connect</strong>A Google window opens.</li>
+        <li><strong>Pick your Community account</strong>Choose your <strong>@cheminneuf.community</strong>, <strong>@chemin-neuf.org</strong> or <strong>@wyd2027.org</strong> account, not a personal one. Any other account is refused (“Access not allowed”).</li>
+        <li><strong>Get past Google’s warning</strong>Google shows “<em>Google hasn’t verified this app</em>”. That’s expected: it’s an internal Community tool that hasn’t gone through Google’s public review. Click <span class="libelle">Advanced</span>, then <span class="libelle">Go to cheminneuf.community (unsafe)</span>.
+          <div class="encart"><p>The app shown is named <strong>cheminneuf.community</strong>. If you see another name, stop and tell the administrator.</p></div>
+        </li>
+        <li><strong>Tick every permission</strong>Google lists what the connector may do. <strong>Tick every box</strong>, especially reading Gmail and reading Google Drive, then click <span class="libelle">Continue</span>.
+          <div class="encart"><p>If a box stays unticked, the connector can’t read your attachments or files. Everything is <strong>read-only</strong>.</p></div>
+        </li>
+        <li><strong>Back in Claude</strong>GWS mcp now shows as connected. You’re done.</li>
+      </ol>
+    </section>
+
+    <section>
+      <span class="rubrique">Check that it works</span>
+      <ol class="etapes">
+        <li><strong>Start a new chat</strong>In the <span class="libelle">Search and tools</span> menu (below the message box), make sure <span class="libelle">GWS mcp</span> is turned on.</li>
+        <li><strong>Ask for a test</strong>Type:
+          <p class="exemple">Use the GWS mcp whoami tool to check my connection.</p>
+          Claude asks you to approve the tool: choose <span class="libelle">Allow once</span> or <span class="libelle">Allow always</span> (for that tool). Claude should show your address and the permissions granted.</li>
+      </ol>
+    </section>
+
+    <section>
+      <span class="rubrique">Examples</span>
+      <p class="exemple">Summarise the attachment of Marie’s latest e-mail.</p>
+      <p class="exemple">Read the three spreadsheets attached to the “lists” e-mail and tell me who appears in more than one.</p>
+      <p class="exemple">Find the September council minutes in my Drive and summarise them.</p>
+      <p class="exemple">Read every sheet of the “WYD registrations” spreadsheet and count registrations per country.</p>
+      <p class="exemple">Read the “Weekend” deck including the speaker notes.</p>
+      <p>Long documents are read in chunks: ask Claude to “keep reading” when needed.</p>
+    </section>
+
+    <section>
+      <span class="rubrique">Good to know</span>
+      <ul>
+        <li><strong>Only your data.</strong> Everyone connects with their own account: Claude only sees your own mailbox and Drive (and files shared with you).</li>
+        <li><strong>Be careful with received attachments.</strong> A document can contain text written to trick an AI. Claude ignores such instructions, but keep a critical eye on answers, especially for documents from strangers.</li>
+        <li><strong>Scanned PDFs.</strong> A scan without a text layer may not be readable. Ask Claude to “show the pages as images”.</li>
+        <li><strong>Privacy.</strong> What is read is sent to Claude to answer you. Details: <a href="/privacy">privacy page</a>.</li>
+      </ul>
+    </section>
+
+    <section>
+      <span class="rubrique">Troubleshooting</span>
+      <dl class="depannage">
+        <dt>“Access not allowed”</dt>
+        <dd>You signed in with an account that isn’t allowed. Disconnect GWS mcp and start again with your Community account. If it was your Community account, tell the administrator.</dd>
+        <dt>“Error 400: admin_policy_enforced”</dt>
+        <dd>Your domain’s Google Workspace administrator must approve the app first. Tell the connector’s administrator, who will ask for it.</dd>
+        <dt>Claude says permissions are missing</dt>
+        <dd>A box wasn’t ticked in step 6. Disconnect GWS mcp (<span class="libelle">Customize</span> › <span class="libelle">Connectors</span> › GWS mcp › <span class="libelle">Disconnect</span>), then connect again ticking every box.</dd>
+        <dt>GWS mcp isn’t in the list</dt>
+        <dd>It hasn’t been added for the organisation yet, or you aren’t in the Community’s Claude Team. Ask the administrator.</dd>
+        <dt>Any other error</dt>
+        <dd>Note the time and the exact message, and send them to the administrator.</dd>
+      </dl>
+    </section>
+
+    <section>
+      <span class="rubrique">Disconnecting</span>
+      <ol class="etapes">
+        <li><strong>In Claude</strong><span class="libelle">Customize</span> › <span class="libelle">Connectors</span> › GWS mcp › <span class="libelle">Disconnect</span>.</li>
+        <li><strong>At Google</strong>At <a href="https://myaccount.google.com/permissions">myaccount.google.com/permissions</a>, remove access for <strong>cheminneuf.community</strong>.</li>
+      </ol>
+    </section>
+  </div>
+
+  <footer>
+    <span>Communauté du Chemin Neuf · <a href="/privacy">Confidentialité / Privacy</a></span>
+    <span>Polices libres (SIL OFL 1.1) : <a href="/privacy/OFL-jost.txt">Jost</a>, <a href="/privacy/OFL-cormorant-garamond.txt">Cormorant Garamond</a>, <a href="/privacy/OFL-playfair-display.txt">Playfair Display</a></span>
+  </footer>
+</main>
+</body>
+</html>

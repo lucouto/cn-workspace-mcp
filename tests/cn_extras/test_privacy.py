@@ -15,7 +15,9 @@ def client():
 def test_page_is_public_and_hardened(client):
     r = client.get("/privacy")
     assert r.status_code == 200 and r.headers["content-type"].startswith("text/html")
-    assert "default-src 'none'" in r.headers["content-security-policy"]
+    csp = r.headers["content-security-policy"]
+    assert "default-src 'none'" in csp and "style-src 'self'" in csp
+    assert "unsafe-inline" not in csp
     assert "max-age=300" in r.headers["cache-control"]
     html = r.text
     assert (
@@ -25,17 +27,19 @@ def test_page_is_public_and_hardened(client):
     )
 
 
-def test_page_makes_no_third_party_requests(client):
+@pytest.mark.parametrize("page", ["/privacy", "/guide"])
+def test_page_makes_no_third_party_requests(client, page):
     import re
 
-    html = client.get("/privacy").text
+    html = client.get(page).text
     refs = re.findall(r'(?:src|href)="([^"]+)"|url\("([^"]+)"\)', html)
     loaded = [
         a or b
         for a, b in refs
         if (a or b) and not (a or b).startswith(("#", "https://", "mailto:"))
     ]
-    assert loaded and all(u.startswith("/privacy/") for u in loaded)
+    # Same-site only: every reference is a root-relative path on this server.
+    assert loaded and all(u.startswith("/") and not u.startswith("//") for u in loaded)
     # every local asset the page references actually exists
     for url in set(loaded):
         assert client.get(url).status_code == 200, url
@@ -52,3 +56,25 @@ def test_page_makes_no_third_party_requests(client):
 )
 def test_only_listed_files_are_served(client, path):
     assert client.get(path).status_code == 404
+
+
+def test_guide_page(client):
+    r = client.get("/guide")
+    assert r.status_code == 200 and r.headers["content-type"].startswith("text/html")
+    html = r.text
+    for needle in (
+        "GWS mcp",
+        "Customize",
+        "Connectors",
+        "Search and tools",
+        "whoami",
+        "admin_policy_enforced",
+        'lang="en"',
+    ):
+        assert needle in html, needle
+    assert "style=" not in html  # CSP forbids inline styles
+
+
+def test_shared_stylesheet_is_served(client):
+    r = client.get("/privacy/ccn-page.css")
+    assert r.status_code == 200 and r.headers["content-type"].startswith("text/css")
