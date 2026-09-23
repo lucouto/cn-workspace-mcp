@@ -377,7 +377,7 @@ Decision: keep upstream `search_gmail_messages` and `search_drive_files` only, s
 
 Test first with one account per domain **before** announcing to the Team. `admin_policy_enforced` = blocked by that domain's admin.
 
-Request note to admins should state: app name and OAuth client ID, the exact scopes (read-only Gmail and Drive), where it's hosted (self-hosted, EU), what's stored (OAuth tokens only, encrypted; no email content), who can use it (allowlisted Team members), and how access is revoked. Ask for **Specific** access to those two scopes rather than full Trusted.
+Request note to admins should state: app name and OAuth client ID, the exact scopes (read-only Gmail and Drive), where it's hosted (self-hosted on Coolify, Azure East US 2, United States — corrected 2026-09-23; the earlier "EU" assumption was wrong), what's stored (OAuth tokens only, encrypted; no email content), who can use it (allowlisted Team members), and how access is revoked. Ask for **Specific** access to those two scopes rather than full Trusted.
 
 ---
 

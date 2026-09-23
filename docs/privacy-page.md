@@ -17,9 +17,10 @@
 - Le contenu lu est transmis **à Claude (Anthropic)** pour répondre à votre demande, dans la conversation où vous l'avez demandé. Il est traité selon les conditions commerciales de l'abonnement Claude de la Communauté.
 - Pour les documents scannés, et seulement si la reconnaissance de texte est activée, le fichier peut être envoyé à **Microsoft Azure AI Document Intelligence (région UE)**. Microsoft supprime le résultat dès la fin du traitement, et en tout cas sous 24 h.
 - Aucune autre transmission. Aucune vente, aucune publicité, aucun usage pour entraîner des modèles d'IA.
+- Ces traitements ont lieu **hors de l'Union européenne**, notamment aux États-Unis (serveur du connecteur, Anthropic), dans le cadre prévu par la politique générale de la Communauté.
 
 **Ce qui est conservé sur notre serveur.**
-- Uniquement vos jetons de connexion OAuth, chiffrés, sur un serveur de la Communauté hébergé en Europe.
+- Uniquement vos jetons de connexion OAuth, chiffrés, sur un serveur de la Communauté hébergé chez Microsoft Azure aux États-Unis (région East US 2).
 - Aucun contenu d'e-mail ni de fichier n'y est enregistré : les fichiers sont lus en mémoire, le temps de la requête.
 - Les journaux techniques contiennent votre adresse, des identifiants de fichiers et des tailles, jamais de contenu ni d'objet de message.
 
@@ -49,9 +50,10 @@
 - The content read is sent **to Claude (Anthropic)** to answer your request, in the conversation where you asked for it. It is processed under the commercial terms of the Community's Claude subscription.
 - For scanned documents, and only if text recognition is enabled, the file may be sent to **Microsoft Azure AI Document Intelligence (EU region)**. Microsoft deletes the result as soon as processing ends, and in any case within 24 h.
 - Nothing else is shared: no sale, no advertising, no use for training AI models.
+- This processing takes place **outside the European Union**, notably in the United States (the connector's server, Anthropic), within the framework of the Community's general policy.
 
 **What is stored on our server.**
-- Only your OAuth sign-in tokens, encrypted, on a Community server hosted in Europe.
+- Only your OAuth sign-in tokens, encrypted, on a Community server hosted on Microsoft Azure in the United States (East US 2 region).
 - No e-mail or file content is stored there: files are read in memory for the duration of the request.
 - Technical logs contain your address, file IDs and sizes, never content or subjects.
 
