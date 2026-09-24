@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GWS mcp – guide administrateur</title>
+<meta name="description" content="Guide administrateur du connecteur GWS mcp : l’ajouter à l’organisation Claude, l’autoriser dans Google Workspace, accueillir les membres, gérer les accès.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="/privacy/ccn-logo-noir.png">
+<link rel="stylesheet" href="/privacy/ccn-page.css?v=3">
+</head>
+<body>
+<div class="bandeau" aria-hidden="true"></div>
+<header class="entete">
+  <a class="logo" href="https://www.chemin-neuf.fr/" aria-label="Communauté du Chemin Neuf">
+    <img src="/privacy/ccn-logo-noir.png" width="560" height="420" alt="Communauté du Chemin Neuf">
+  </a>
+  <h1 class="titre"><span class="l1">Connecteur GWS mcp</span><span class="l2">Guide administrateur</span></h1>
+</header>
+<main class="page">
+  <p class="chapeau">Pour les <strong>Owners</strong> de l’équipe Claude de la Communauté et les <strong>administrateurs Google Workspace</strong> des domaines concernés : ajouter le connecteur à l’organisation, l’autoriser côté Google, accueillir les membres et gérer les accès. Les membres, eux, suivent le <a href="/guide">guide d’installation</a>.</p>
+  <p class="meta">Version 1.0 · 24 septembre 2026</p>
+
+  <nav class="langues" aria-label="Langue"><a href="#fr" hreflang="fr">Français</a><a href="#en" hreflang="en">English</a></nav>
+
+  <div id="fr" lang="fr">
+    <section>
+      <span class="rubrique">En bref</span>
+      <ul>
+        <li><strong>Adresse du connecteur :</strong> <code>https://gws.mcp.cheminneuf.community/mcp</code></li>
+        <li><strong>Nom dans Claude :</strong> <span class="libelle">GWS mcp</span> (le guide des membres utilise ce nom).</li>
+        <li><strong>Ce qu’il fait :</strong> lecture seule du contenu des pièces jointes Gmail et des fichiers Google Drive. Aucune écriture, aucun envoi.</li>
+        <li><strong>Accès personnel :</strong> chaque membre se connecte avec son propre compte Google. Personne ne voit les données d’un autre.</li>
+        <li><strong>Qui peut se connecter :</strong> les comptes Google Workspace de <strong>cheminneuf.community</strong>, <strong>chemin-neuf.org</strong> et <strong>wyd2027.org</strong>, et quelques adresses autorisées une par une. Tout autre compte est refusé dès la connexion.</li>
+        <li><strong>Application Google :</strong> ID client OAuth <code>385359822646-ihp90c1i6llfha04tk1h4pa6vk5mjk25.apps.googleusercontent.com</code>, nom affiché <strong>cheminneuf.community</strong>, non validée par Google (voir « Limite de 100 utilisateurs »).</li>
+      </ul>
+    </section>
+
+    <section>
+      <span class="rubrique">1. Ajouter le connecteur à l’organisation Claude</span>
+      <p>À faire une seule fois, par un <strong>Owner</strong> ou <strong>Primary Owner</strong> de l’équipe Claude.</p>
+      <ol class="etapes">
+        <li><strong>Ouvrir les réglages de l’organisation</strong>Dans Claude : <span class="libelle">Organization settings</span> › <span class="libelle">Connectors</span>.</li>
+        <li><strong>Ajouter un connecteur personnalisé</strong>Cliquez sur <span class="libelle">Add</span>, survolez <span class="libelle">Custom</span>, puis choisissez <span class="libelle">Web</span>.</li>
+        <li><strong>Renseigner le connecteur</strong>Nom : <code>GWS mcp</code>. Adresse du serveur MCP : <code>https://gws.mcp.cheminneuf.community/mcp</code>.</li>
+        <li><strong>Laisser « Advanced settings » vide</strong>Ne remplissez ni « OAuth Client ID » ni « OAuth Client Secret » : le serveur gère lui-même l’enregistrement de Claude, et les identifiants Google restent sur le serveur.</li>
+        <li><strong>Valider</strong>Cliquez sur <span class="libelle">Add</span>. Le connecteur apparaît pour tous les membres, avec l’étiquette <span class="libelle">Custom</span>, mais <strong>personne n’est connecté</strong> tant qu’il n’a pas cliqué sur <span class="libelle">Connect</span>.</li>
+      </ol>
+      <div class="encart">
+        <p><strong>N’utilisez pas « Enterprise-managed auth »</strong> pour ce connecteur. Ce mode donne un accès central via un fournisseur d’identité ; GWS mcp repose au contraire sur la connexion Google <strong>personnelle</strong> de chaque membre, qui garantit que chacun ne lit que ses propres données.</p>
+      </div>
+    </section>
+
+    <section>
+      <span class="rubrique">2. Autoriser l’application dans Google Workspace</span>
+      <p>À faire par l’administrateur Google Workspace <strong>de chaque domaine</strong> (cheminneuf.community, wyd2027.org, chemin-neuf.org). Sans cette autorisation, si le domaine restreint les applications tierces, les membres voient <code>Error 400: admin_policy_enforced</code>.</p>
+      <ol class="etapes">
+        <li><strong>Ouvrir la console d’administration</strong>Sur <a href="https://admin.google.com">admin.google.com</a> : <span class="libelle">Sécurité</span> › <span class="libelle">Accès et contrôle des données</span> › <span class="libelle">Commandes des API</span> › <span class="libelle">Gérer l’accès des applications tierces</span>.</li>
+        <li><strong>Configurer une nouvelle application</strong>Recherchez l’ID client <code>385359822646-ihp90c1i6llfha04tk1h4pa6vk5mjk25.apps.googleusercontent.com</code>.</li>
+        <li><strong>Choisir l’accès « Spécifique »</strong>Accordez uniquement la <strong>lecture seule de Gmail</strong> et la <strong>lecture seule de Google Drive</strong>, plutôt que « Approuvée » (accès total). Appliquez à l’unité organisationnelle voulue (souvent tout le domaine).</li>
+      </ol>
+      <p>Même si le domaine n’impose rien aujourd’hui, cette autorisation évite qu’un changement de politique futur ne coupe le connecteur. Elle se retire à tout moment depuis la même page.</p>
+    </section>
+
+    <section>
+      <span class="rubrique">3. Tester avant d’annoncer</span>
+      <ol class="etapes">
+        <li><strong>Vous connecter vous-même</strong>En suivant le <a href="/guide">guide des membres</a>, avec un compte de chaque domaine si possible.</li>
+        <li><strong>Vérifier</strong>Dans une conversation : « Utilise l’outil whoami de GWS mcp ». Puis faites lire une pièce jointe, un Google Doc et un Google Sheet.</li>
+        <li><strong>Vérifier le refus</strong>Essayez une fois avec un compte gmail.com non autorisé : la page « Access not allowed » doit s’afficher.</li>
+      </ol>
+    </section>
+
+    <section>
+      <span class="rubrique">4. Accueillir les membres</span>
+      <ul>
+        <li>Envoyez-leur ce lien : <a href="/guide"><code>https://gws.mcp.cheminneuf.community/guide</code></a>. Tout y est, y compris l’écran « application non validée » de Google et les cases à cocher.</li>
+        <li>Commencez par un <strong>petit groupe pilote</strong> (3 à 5 personnes, plusieurs domaines) avant d’annoncer à toute l’équipe.</li>
+      </ul>
+      <div class="encart">
+        <p><strong>Limite de 100 utilisateurs.</strong> L’application Google n’est pas validée par Google (une validation complète demanderait un audit de sécurité annuel payant). Google limite donc l’application à <strong>100 utilisateurs sur toute sa durée de vie</strong> : chaque personne qui se connecte une fois compte, même si elle se déconnecte ensuite. Ne partagez pas le lien hors de l’équipe et évitez les connexions « pour essayer ».</p>
+      </div>
+    </section>
+
+    <section>
+      <span class="rubrique">5. Gérer les accès</span>
+      <dl class="depannage">
+        <dt>Autoriser une adresse personnelle (gmail.com…)</dt>
+        <dd>Demandez à l’administrateur du serveur de l’ajouter à la liste des adresses autorisées. Seules les adresses listées une par une passent ; gmail.com n’est jamais autorisé en bloc.</dd>
+        <dt>Retirer quelqu’un</dt>
+        <dd>L’administrateur du serveur le retire de la liste : il est coupé à sa requête suivante, et sa connexion ne peut plus se renouveler. Sur demande, ses jetons enregistrés sont supprimés immédiatement.</dd>
+        <dt>Un membre quitte la Communauté</dt>
+        <dd>La suspension de son compte Google Workspace coupe aussi le connecteur. Retirez-le en plus de l’équipe Claude.</dd>
+        <dt>Demande d’effacement (RGPD)</dt>
+        <dd>Le serveur ne garde que des jetons de connexion chiffrés. L’administrateur du serveur les supprime sur demande ; la personne retire aussi l’accès sur <a href="https://myaccount.google.com/permissions">myaccount.google.com/permissions</a>.</dd>
+      </dl>
+    </section>
+
+    <section>
+      <span class="rubrique">6. Modifier ou retirer le connecteur</span>
+      <ul>
+        <li>Claude ne permet pas de modifier un connecteur : il faut le <strong>retirer puis l’ajouter à nouveau</strong> (<span class="libelle">Organization settings</span> › <span class="libelle">Connectors</span> › menu <span class="libelle">…</span> › <span class="libelle">Remove</span>).</li>
+        <li>Après un retrait, chaque membre doit se reconnecter. Évitez de le faire sans raison.</li>
+        <li>Si vous changez le nom du connecteur, prévenez l’administrateur du serveur pour mettre à jour le guide des membres.</li>
+      </ul>
+    </section>
+
+    <section>
+      <span class="rubrique">7. Dépannage</span>
+      <dl class="depannage">
+        <dt>« Error 400: admin_policy_enforced »</dt>
+        <dd>L’application n’est pas autorisée dans le Google Workspace de ce domaine : voir l’étape 2.</dd>
+        <dt>« Access not allowed »</dt>
+        <dd>Le compte utilisé n’est pas autorisé (compte personnel, autre domaine, ou compte qui n’est pas un vrai compte Workspace du domaine). Vérifier le compte choisi ; sinon, demander l’ajout de l’adresse.</dd>
+        <dt>Un membre ne voit pas GWS mcp</dt>
+        <dd>Il n’est pas dans l’équipe Claude de la Communauté, ou le connecteur a été retiré.</dd>
+        <dt>Claude signale « API not enabled » ou « accessNotConfigured »</dt>
+        <dd>L’API Gmail ou Drive a été désactivée dans le projet Google Cloud <code>cn-workspace-mcp</code>. Réactivez-la dans la console Google Cloud.</dd>
+        <dt>Le connecteur ne répond plus pour personne</dt>
+        <dd>Prévenez l’administrateur du serveur. L’état du serveur se vérifie sur <a href="/health"><code>/health</code></a>.</dd>
+      </dl>
+    </section>
+
+    <section>
+      <span class="rubrique">Qui fait quoi</span>
+      <ul>
+        <li><strong>Owner de l’équipe Claude :</strong> ajouter ou retirer le connecteur (étapes 1 et 6).</li>
+        <li><strong>Administrateur Google Workspace de chaque domaine :</strong> autoriser l’application (étape 2).</li>
+        <li><strong>Administrateur du serveur</strong> (actuellement Luciano Couto) : liste des adresses autorisées, suppression des jetons, mises à jour, hébergement. Documentation technique : <a href="https://github.com/lucouto/cn-workspace-mcp/blob/cn/main/docs/DEPLOY.md" hreflang="en">DEPLOY.md</a>.</li>
+        <li><strong>Protection des données :</strong> Secrétariat général de la Communauté (voir la <a href="/privacy">page de confidentialité</a>).</li>
+      </ul>
+    </section>
+  </div>
+
+  <div id="en" lang="en" class="langue">
+    <h2>English</h2>
+    <section>
+      <span class="rubrique">At a glance</span>
+      <ul>
+        <li><strong>Connector URL:</strong> <code>https://gws.mcp.cheminneuf.community/mcp</code></li>
+        <li><strong>Name in Claude:</strong> <span class="libelle">GWS mcp</span> (the members’ guide uses this name).</li>
+        <li><strong>What it does:</strong> read-only access to the content of Gmail attachments and Google Drive files. No writing, no sending.</li>
+        <li><strong>Personal access:</strong> every member connects with their own Google account. Nobody sees anyone else’s data.</li>
+        <li><strong>Who can connect:</strong> Google Workspace accounts of <strong>cheminneuf.community</strong>, <strong>chemin-neuf.org</strong> and <strong>wyd2027.org</strong>, plus a few individually allowed addresses. Any other account is refused at sign-in.</li>
+        <li><strong>Google app:</strong> OAuth client ID <code>385359822646-ihp90c1i6llfha04tk1h4pa6vk5mjk25.apps.googleusercontent.com</code>, displayed name <strong>cheminneuf.community</strong>, not verified by Google (see “100-user limit”).</li>
+      </ul>
+    </section>
+
+    <section>
+      <span class="rubrique">1. Add the connector to the Claude organisation</span>
+      <p>Done once, by an <strong>Owner</strong> or <strong>Primary Owner</strong> of the Claude Team.</p>
+      <ol class="etapes">
+        <li><strong>Open organisation settings</strong>In Claude: <span class="libelle">Organization settings</span> › <span class="libelle">Connectors</span>.</li>
+        <li><strong>Add a custom connector</strong>Click <span class="libelle">Add</span>, hover over <span class="libelle">Custom</span>, then choose <span class="libelle">Web</span>.</li>
+        <li><strong>Fill it in</strong>Name: <code>GWS mcp</code>. Remote MCP server URL: <code>https://gws.mcp.cheminneuf.community/mcp</code>.</li>
+        <li><strong>Leave “Advanced settings” empty</strong>Don’t fill in the OAuth Client ID or Secret: the server registers Claude itself, and the Google credentials stay on the server.</li>
+        <li><strong>Confirm</strong>Click <span class="libelle">Add</span>. The connector appears for every member, labelled <span class="libelle">Custom</span>, but <strong>nobody is connected</strong> until they click <span class="libelle">Connect</span>.</li>
+      </ol>
+      <div class="encart">
+        <p><strong>Don’t use “Enterprise-managed auth”</strong> for this connector. That mode grants access centrally through an identity provider; GWS mcp relies instead on each member’s <strong>own</strong> Google sign-in, which is what guarantees everyone only reads their own data.</p>
+      </div>
+    </section>
+
+    <section>
+      <span class="rubrique">2. Approve the app in Google Workspace</span>
+      <p>Done by the Google Workspace administrator <strong>of each domain</strong> (cheminneuf.community, wyd2027.org, chemin-neuf.org). Without it, if the domain restricts third-party apps, members see <code>Error 400: admin_policy_enforced</code>.</p>
+      <ol class="etapes">
+        <li><strong>Open the admin console</strong>At <a href="https://admin.google.com">admin.google.com</a>: <span class="libelle">Security</span> › <span class="libelle">Access and data control</span> › <span class="libelle">API controls</span> › <span class="libelle">Manage third-party app access</span>.</li>
+        <li><strong>Configure a new app</strong>Search for the client ID <code>385359822646-ihp90c1i6llfha04tk1h4pa6vk5mjk25.apps.googleusercontent.com</code>.</li>
+        <li><strong>Choose “Specific” access</strong>Grant only <strong>read-only Gmail</strong> and <strong>read-only Google Drive</strong>, rather than “Trusted” (full access). Apply it to the organisational unit you want (usually the whole domain).</li>
+      </ol>
+      <p>Even if the domain enforces nothing today, this approval keeps a future policy change from cutting the connector off. It can be withdrawn at any time from the same page.</p>
+    </section>
+
+    <section>
+      <span class="rubrique">3. Test before announcing</span>
+      <ol class="etapes">
+        <li><strong>Connect yourself</strong>Following the <a href="/guide">members’ guide</a>, ideally with one account per domain.</li>
+        <li><strong>Check</strong>In a chat: “Use the GWS mcp whoami tool”. Then have it read an attachment, a Google Doc and a Google Sheet.</li>
+        <li><strong>Check the refusal</strong>Try once with a gmail.com account that isn’t allowed: the “Access not allowed” page must appear.</li>
+      </ol>
+    </section>
+
+    <section>
+      <span class="rubrique">4. Onboard members</span>
+      <ul>
+        <li>Send them this link: <a href="/guide"><code>https://gws.mcp.cheminneuf.community/guide</code></a>. It covers everything, including Google’s “unverified app” screen and the permission boxes.</li>
+        <li>Start with a <strong>small pilot group</strong> (3 to 5 people, several domains) before announcing it to the whole team.</li>
+      </ul>
+      <div class="encart">
+        <p><strong>100-user limit.</strong> The Google app isn’t verified by Google (full verification would require a paid annual security audit). Google therefore caps it at <strong>100 users over its whole lifetime</strong>: everyone who connects once counts, even if they disconnect later. Don’t share the link outside the team and avoid “just trying it” connections.</p>
+      </div>
+    </section>
+
+    <section>
+      <span class="rubrique">5. Managing access</span>
+      <dl class="depannage">
+        <dt>Allowing a personal address (gmail.com…)</dt>
+        <dd>Ask the server administrator to add it to the allowed addresses. Only individually listed addresses get in; gmail.com is never allowed as a whole.</dd>
+        <dt>Removing someone</dt>
+        <dd>The server administrator removes them from the list: they are cut off on their next request, and their connection can no longer renew. On request, their stored tokens are deleted immediately.</dd>
+        <dt>A member leaves the Community</dt>
+        <dd>Suspending their Google Workspace account also cuts the connector. Remove them from the Claude Team as well.</dd>
+        <dt>Erasure request (GDPR)</dt>
+        <dd>The server only keeps encrypted sign-in tokens. The server administrator deletes them on request; the person also removes access at <a href="https://myaccount.google.com/permissions">myaccount.google.com/permissions</a>.</dd>
+      </dl>
+    </section>
+
+    <section>
+      <span class="rubrique">6. Changing or removing the connector</span>
+      <ul>
+        <li>Claude can’t edit a connector: you <strong>remove it and add it again</strong> (<span class="libelle">Organization settings</span> › <span class="libelle">Connectors</span> › <span class="libelle">…</span> menu › <span class="libelle">Remove</span>).</li>
+        <li>After a removal, every member has to reconnect. Don’t do it without a reason.</li>
+        <li>If you rename the connector, tell the server administrator so the members’ guide gets updated.</li>
+      </ul>
+    </section>
+
+    <section>
+      <span class="rubrique">7. Troubleshooting</span>
+      <dl class="depannage">
+        <dt>“Error 400: admin_policy_enforced”</dt>
+        <dd>The app isn’t approved in that domain’s Google Workspace: see step 2.</dd>
+        <dt>“Access not allowed”</dt>
+        <dd>The account used isn’t allowed (a personal account, another domain, or an account that isn’t a genuine Workspace account of the domain). Check which account was picked; otherwise ask for the address to be added.</dd>
+        <dt>A member doesn’t see GWS mcp</dt>
+        <dd>They aren’t in the Community’s Claude Team, or the connector was removed.</dd>
+        <dt>Claude reports “API not enabled” or “accessNotConfigured”</dt>
+        <dd>The Gmail or Drive API was disabled in the Google Cloud project <code>cn-workspace-mcp</code>. Enable it again in the Google Cloud console.</dd>
+        <dt>The connector stops answering for everyone</dt>
+        <dd>Tell the server administrator. Server status: <a href="/health"><code>/health</code></a>.</dd>
+      </dl>
+    </section>
+
+    <section>
+      <span class="rubrique">Who does what</span>
+      <ul>
+        <li><strong>Claude Team Owner:</strong> add or remove the connector (steps 1 and 6).</li>
+        <li><strong>Google Workspace administrator of each domain:</strong> approve the app (step 2).</li>
+        <li><strong>Server administrator</strong> (currently Luciano Couto): allowed addresses, token deletion, updates, hosting. Technical documentation: <a href="https://github.com/lucouto/cn-workspace-mcp/blob/cn/main/docs/DEPLOY.md">DEPLOY.md</a>.</li>
+        <li><strong>Data protection:</strong> the Community’s Secrétariat général (see the <a href="/privacy">privacy page</a>).</li>
+      </ul>
+    </section>
+  </div>
+
+  <footer>
+    <span>Communauté du Chemin Neuf · <a href="/guide">Guide des membres / Members’ guide</a> · <a href="/privacy">Confidentialité / Privacy</a></span>
+    <span>Polices libres (SIL OFL 1.1) : <a href="/privacy/OFL-jost.txt">Jost</a>, <a href="/privacy/OFL-cormorant-garamond.txt">Cormorant Garamond</a>, <a href="/privacy/OFL-playfair-display.txt">Playfair Display</a></span>
+  </footer>
+</main>
+</body>
+</html>

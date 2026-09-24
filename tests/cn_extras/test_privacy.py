@@ -27,7 +27,7 @@ def test_page_is_public_and_hardened(client):
     )
 
 
-@pytest.mark.parametrize("page", ["/privacy", "/guide"])
+@pytest.mark.parametrize("page", ["/privacy", "/guide", "/admin"])
 def test_page_makes_no_third_party_requests(client, page):
     import re
 
@@ -78,3 +78,22 @@ def test_guide_page(client):
 def test_shared_stylesheet_is_served(client):
     r = client.get("/privacy/ccn-page.css")
     assert r.status_code == 200 and r.headers["content-type"].startswith("text/css")
+
+
+def test_admin_guide_page(client):
+    r = client.get("/admin")
+    assert r.status_code == 200 and "noindex" in r.text
+    for needle in (
+        "Organization settings",
+        "Custom",
+        "Web",
+        "https://gws.mcp.cheminneuf.community/mcp",
+        "Advanced settings",
+        "Enterprise-managed auth",
+        "385359822646-ihp90c1i6llfha04tk1h4pa6vk5mjk25",
+        "admin_policy_enforced",
+        "100",
+        'lang="en"',
+    ):
+        assert needle in r.text, needle
+    assert "style=" not in r.text

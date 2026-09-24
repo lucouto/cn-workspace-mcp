@@ -1,5 +1,6 @@
-"""Public pages: /privacy (Google OAuth consent screen, docs/DEPLOY.md §1) and
-/guide (setup guide for Team members). Shared assets live under /privacy/.
+"""Public pages: /privacy (Google OAuth consent screen, docs/DEPLOY.md §1),
+/guide (setup guide for Team members) and /admin (guide for Claude Team Owners
+and Google Workspace admins). Shared assets live under /privacy/.
 
 Served at /privacy by the connector itself, so its URL sits under the app's
 authorised domain (cheminneuf.community). Only the files shipped in
@@ -32,6 +33,7 @@ _FILES = {
 }
 
 GUIDE = Path(__file__).parent / "static" / "guide" / "index.html"
+ADMIN_GUIDE = Path(__file__).parent / "static" / "admin" / "index.html"
 
 _HEADERS = {
     "Content-Security-Policy": (
@@ -60,6 +62,12 @@ async def privacy_page(request: Request):
 async def guide_page(request: Request):
     """Setup guide for Team members (same look and assets as /privacy)."""
     return _file(GUIDE)
+
+
+@server.custom_route("/admin", methods=["GET", "HEAD"])
+async def admin_guide_page(request: Request):
+    """Guide for Claude Team Owners and Google Workspace admins."""
+    return _file(ADMIN_GUIDE)
 
 
 @server.custom_route("/privacy/{name}", methods=["GET", "HEAD"])
