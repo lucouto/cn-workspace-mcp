@@ -359,3 +359,7 @@ from cn_extras.auth_provider import register_middleware  # noqa: E402
 # Also register the allowlist here, not only when the OAuth provider is built:
 # in any other auth mode it then refuses requests instead of being absent.
 register_middleware()
+
+from cn_extras import log_hygiene  # noqa: E402
+
+log_hygiene.install()

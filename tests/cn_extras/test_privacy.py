@@ -69,6 +69,10 @@ def test_guide_page(client):
         "Search and tools",
         "whoami",
         "admin_policy_enforced",
+        "GWS mcp – 2nd account",
+        "GWS mcp – 1st account",
+        "Deux comptes Google",
+        "Two Google accounts",
         'lang="en"',
     ):
         assert needle in html, needle
@@ -93,6 +97,9 @@ def test_admin_guide_page(client):
         "385359822646-ihp90c1i6llfha04tk1h4pa6vk5mjk25",
         "admin_policy_enforced",
         "100",
+        "https://gws.mcp.cheminneuf.community/mcp?account=2",
+        "GWS mcp – 2nd account",
+        "GWS mcp – 1st account",
         'lang="en"',
     ):
         assert needle in r.text, needle

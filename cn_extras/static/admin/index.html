@@ -19,7 +19,7 @@
 </header>
 <main class="page">
   <p class="chapeau">Pour les <strong>Owners</strong> de l’équipe Claude de la Communauté et les <strong>administrateurs Google Workspace</strong> des domaines concernés : ajouter le connecteur à l’organisation, l’autoriser côté Google, accueillir les membres et gérer les accès. Les membres, eux, suivent le <a href="/guide">guide d’installation</a>.</p>
-  <p class="meta">Version 1.0 · 24 septembre 2026</p>
+  <p class="meta">Version 1.1 · 24 septembre 2026</p>
 
   <nav class="langues" aria-label="Langue"><a href="#fr" hreflang="fr">Français</a><a href="#en" hreflang="en">English</a></nav>
 
@@ -27,8 +27,7 @@
     <section>
       <span class="rubrique">En bref</span>
       <ul>
-        <li><strong>Adresse du connecteur :</strong> <code>https://gws.mcp.cheminneuf.community/mcp</code></li>
-        <li><strong>Nom dans Claude :</strong> <span class="libelle">GWS mcp</span> (le guide des membres utilise ce nom).</li>
+        <li><strong>Connecteurs :</strong> <span class="libelle">GWS mcp – 1st account</span> → <code>https://gws.mcp.cheminneuf.community/mcp</code> et <span class="libelle">GWS mcp – 2nd account</span> → <code>https://gws.mcp.cheminneuf.community/mcp?account=2</code>. Le guide des membres utilise exactement ces noms.</li>
         <li><strong>Ce qu’il fait :</strong> lecture seule du contenu des pièces jointes Gmail et des fichiers Google Drive. Aucune écriture, aucun envoi.</li>
         <li><strong>Accès personnel :</strong> chaque membre se connecte avec son propre compte Google. Personne ne voit les données d’un autre.</li>
         <li><strong>Qui peut se connecter :</strong> les comptes Google Workspace de <strong>cheminneuf.community</strong>, <strong>chemin-neuf.org</strong> et <strong>wyd2027.org</strong>, et quelques adresses autorisées une par une. Tout autre compte est refusé dès la connexion.</li>
@@ -42,12 +41,24 @@
       <ol class="etapes">
         <li><strong>Ouvrir les réglages de l’organisation</strong>Dans Claude : <span class="libelle">Organization settings</span> › <span class="libelle">Connectors</span>.</li>
         <li><strong>Ajouter un connecteur personnalisé</strong>Cliquez sur <span class="libelle">Add</span>, survolez <span class="libelle">Custom</span>, puis choisissez <span class="libelle">Web</span>.</li>
-        <li><strong>Renseigner le connecteur</strong>Nom : <code>GWS mcp</code>. Adresse du serveur MCP : <code>https://gws.mcp.cheminneuf.community/mcp</code>.</li>
+        <li><strong>Renseigner le connecteur</strong>Nom : <code>GWS mcp – 1st account</code>. Adresse du serveur MCP : <code>https://gws.mcp.cheminneuf.community/mcp</code>.</li>
         <li><strong>Laisser « Advanced settings » vide</strong>Ne remplissez ni « OAuth Client ID » ni « OAuth Client Secret » : le serveur gère lui-même l’enregistrement de Claude, et les identifiants Google restent sur le serveur.</li>
         <li><strong>Valider</strong>Cliquez sur <span class="libelle">Add</span>. Le connecteur apparaît pour tous les membres, avec l’étiquette <span class="libelle">Custom</span>, mais <strong>personne n’est connecté</strong> tant qu’il n’a pas cliqué sur <span class="libelle">Connect</span>.</li>
       </ol>
       <div class="encart">
         <p><strong>N’utilisez pas « Enterprise-managed auth »</strong> pour ce connecteur. Ce mode donne un accès central via un fournisseur d’identité ; GWS mcp repose au contraire sur la connexion Google <strong>personnelle</strong> de chaque membre, qui garantit que chacun ne lit que ses propres données.</p>
+      </div>
+    </section>
+
+    <section>
+      <span class="rubrique">1 bis. Second connecteur, pour un second compte Google</span>
+      <p>Une connexion GWS mcp est liée à un seul compte Google. Pour les membres qui ont deux comptes de la Communauté, ajoutez un second connecteur vers le même serveur. Claude refuse deux connecteurs avec exactement la même adresse ; on ajoute donc <code>?account=2</code>, que le serveur ignore.</p>
+      <ol class="etapes">
+        <li><strong>Ajouter le connecteur</strong>Même démarche qu’à l’étape 1, avec le nom <code>GWS mcp – 2nd account</code> et l’adresse <code>https://gws.mcp.cheminneuf.community/mcp?account=2</code>.</li>
+        <li><strong>Tester</strong>Connectez les deux connecteurs avec deux comptes différents, puis demandez à Claude d’appeler <code>whoami</code> sur chacun : les deux adresses doivent différer.</li>
+      </ol>
+      <div class="encart">
+        <p>Les deux connecteurs apparaissent pour tous les membres ; chacun ne connecte que ceux dont il a besoin. Chaque compte Google connecté compte séparément dans la limite de 100 utilisateurs de l’application Google, et a son propre quota de pages OCR. Pour un troisième compte : <code>?account=3</code>, et ainsi de suite.</p>
       </div>
     </section>
 
@@ -66,7 +77,7 @@
       <span class="rubrique">3. Tester avant d’annoncer</span>
       <ol class="etapes">
         <li><strong>Vous connecter vous-même</strong>En suivant le <a href="/guide">guide des membres</a>, avec un compte de chaque domaine si possible.</li>
-        <li><strong>Vérifier</strong>Dans une conversation : « Utilise l’outil whoami de GWS mcp ». Puis faites lire une pièce jointe, un Google Doc et un Google Sheet.</li>
+        <li><strong>Vérifier</strong>Dans une conversation : « Utilise l’outil whoami de GWS mcp – 1st account ». Puis faites lire une pièce jointe, un Google Doc et un Google Sheet.</li>
         <li><strong>Vérifier le refus</strong>Essayez une fois avec un compte gmail.com non autorisé : la page « Access not allowed » doit s’afficher.</li>
       </ol>
     </section>
@@ -137,8 +148,7 @@
     <section>
       <span class="rubrique">At a glance</span>
       <ul>
-        <li><strong>Connector URL:</strong> <code>https://gws.mcp.cheminneuf.community/mcp</code></li>
-        <li><strong>Name in Claude:</strong> <span class="libelle">GWS mcp</span> (the members’ guide uses this name).</li>
+        <li><strong>Connectors:</strong> <span class="libelle">GWS mcp – 1st account</span> → <code>https://gws.mcp.cheminneuf.community/mcp</code> and <span class="libelle">GWS mcp – 2nd account</span> → <code>https://gws.mcp.cheminneuf.community/mcp?account=2</code>. The members’ guide uses exactly these names.</li>
         <li><strong>What it does:</strong> read-only access to the content of Gmail attachments and Google Drive files. No writing, no sending.</li>
         <li><strong>Personal access:</strong> every member connects with their own Google account. Nobody sees anyone else’s data.</li>
         <li><strong>Who can connect:</strong> Google Workspace accounts of <strong>cheminneuf.community</strong>, <strong>chemin-neuf.org</strong> and <strong>wyd2027.org</strong>, plus a few individually allowed addresses. Any other account is refused at sign-in.</li>
@@ -152,12 +162,24 @@
       <ol class="etapes">
         <li><strong>Open organisation settings</strong>In Claude: <span class="libelle">Organization settings</span> › <span class="libelle">Connectors</span>.</li>
         <li><strong>Add a custom connector</strong>Click <span class="libelle">Add</span>, hover over <span class="libelle">Custom</span>, then choose <span class="libelle">Web</span>.</li>
-        <li><strong>Fill it in</strong>Name: <code>GWS mcp</code>. Remote MCP server URL: <code>https://gws.mcp.cheminneuf.community/mcp</code>.</li>
+        <li><strong>Fill it in</strong>Name: <code>GWS mcp – 1st account</code>. Remote MCP server URL: <code>https://gws.mcp.cheminneuf.community/mcp</code>.</li>
         <li><strong>Leave “Advanced settings” empty</strong>Don’t fill in the OAuth Client ID or Secret: the server registers Claude itself, and the Google credentials stay on the server.</li>
         <li><strong>Confirm</strong>Click <span class="libelle">Add</span>. The connector appears for every member, labelled <span class="libelle">Custom</span>, but <strong>nobody is connected</strong> until they click <span class="libelle">Connect</span>.</li>
       </ol>
       <div class="encart">
         <p><strong>Don’t use “Enterprise-managed auth”</strong> for this connector. That mode grants access centrally through an identity provider; GWS mcp relies instead on each member’s <strong>own</strong> Google sign-in, which is what guarantees everyone only reads their own data.</p>
+      </div>
+    </section>
+
+    <section>
+      <span class="rubrique">1a. A second connector, for a second Google account</span>
+      <p>A GWS mcp connection is tied to one Google account. For members with two Community accounts, add a second connector to the same server. Claude refuses two connectors with exactly the same URL, so add <code>?account=2</code>, which the server ignores.</p>
+      <ol class="etapes">
+        <li><strong>Add the connector</strong>Same steps as in step 1, with the name <code>GWS mcp – 2nd account</code> and the URL <code>https://gws.mcp.cheminneuf.community/mcp?account=2</code>.</li>
+        <li><strong>Test</strong>Connect both connectors with two different accounts, then ask Claude to call <code>whoami</code> on each: the two addresses must differ.</li>
+      </ol>
+      <div class="encart">
+        <p>Both connectors show for every member; each person connects only the ones they need. Each connected Google account counts separately toward the Google app’s 100-user limit and has its own OCR page quota. For a third account: <code>?account=3</code>, and so on.</p>
       </div>
     </section>
 
@@ -176,7 +198,7 @@
       <span class="rubrique">3. Test before announcing</span>
       <ol class="etapes">
         <li><strong>Connect yourself</strong>Following the <a href="/guide">members’ guide</a>, ideally with one account per domain.</li>
-        <li><strong>Check</strong>In a chat: “Use the GWS mcp whoami tool”. Then have it read an attachment, a Google Doc and a Google Sheet.</li>
+        <li><strong>Check</strong>In a chat: “Use the whoami tool of GWS mcp – 1st account”. Then have it read an attachment, a Google Doc and a Google Sheet.</li>
         <li><strong>Check the refusal</strong>Try once with a gmail.com account that isn’t allowed: the “Access not allowed” page must appear.</li>
       </ol>
     </section>

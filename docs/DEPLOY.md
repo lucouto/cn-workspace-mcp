@@ -129,6 +129,7 @@ Test with one account per domain **before** announcing to the Team.
 - **Who is connected:** `docker exec <c> /app/.venv/bin/python -m cn_extras.admin list`
 - **Remove someone:** remove them from `CN_ALLOWED_*` → cut off on their next request; their refresh is refused and purged. For immediate deletion of their stored tokens: `... cn_extras.admin purge someone@domain` (add `--dry-run` first).
 - **Store sanity after changing secrets:** `... cn_extras.admin check`, which fails if the signing key no longer matches the stored sessions.
+- **Second Google account per person:** a second org connector `GWS mcp – 2nd account` (the first is `GWS mcp – 1st account` → `/mcp`) → `https://gws.mcp.cheminneuf.community/mcp?account=2` (Claude refuses a duplicate URL; the server ignores the query). Each connector holds its own sign-in; verified 2026-09-24 with whoami on chemin-neuf.org and cheminneuf.community. Documented in /guide and /admin §1a.
 - **Users disconnect themselves:** Claude connector settings, plus https://myaccount.google.com/permissions.
 - **Rollback:** redeploy the previous commit in Coolify; sessions survive (volume).
 - **Upstream updates:** rebase on a new upstream tag, then `uv lock`, run the tests, redeploy. Check the "Private FastMCP internals" list in FORK_CHANGES.md.
