@@ -643,3 +643,12 @@ class TestPhase2bReviewRegressions:
             with pytest.raises(ValueError):
                 di.parse_pages(spec, None)
         assert time.monotonic() - started < 0.5
+
+
+def test_azure_http_logging_is_quiet():
+    import logging
+
+    import cn_extras.extract_di  # noqa: F401
+
+    http_log = logging.getLogger("azure.core.pipeline.policies.http_logging_policy")
+    assert not http_log.isEnabledFor(logging.INFO)

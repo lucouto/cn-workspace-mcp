@@ -18,6 +18,11 @@ from typing import List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
+# The Azure SDK logs every request and response (URL, headers) at INFO: two
+# dozen lines per page, and the root logger here is INFO. Our own [di] line
+# already records model, duration and cleanup.
+logging.getLogger("azure.core.pipeline.policies.http_logging_policy").setLevel(logging.WARNING)
+
 READ_MODEL = "prebuilt-read"
 LAYOUT_MODEL = "prebuilt-layout"
 

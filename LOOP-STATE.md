@@ -18,6 +18,7 @@ Checklist: `docs/DEPLOY.md`.
 - Host: Coolify 4.3.23 on `vm-coolify-n8n` (Azure **eastus2**, sub "CCN BR", B2ms, shared with ~20 apps). Coolify server `bc8c4ok80oogg4gswws4ks80`, project "Production Stack" `q4sgkowosk88os848k008o0o`, env `production`.
 - App `cn-workspace-mcp` uuid **`0yyaz9fot838pqbnensz9dbo`**: branch `cn/main`, `/Dockerfile.cn`, port 8000, health `/health`, memory limit 1g, volume `/data` (storage `8hued72sdjnmq5jbnb0ww8vc`). No auto-deploy webhook (public repo): deploy with `POST $COOLIFY_API_URL/deploy {"uuid":…}`.
 - Google OAuth client `385359822646-ihp90c1i6llfha04tk1h4pa6vk5mjk25.apps.googleusercontent.com`, project `cn-workspace-mcp`, External / In production. Consent-screen app name currently "cheminneuf.community".
+- OCR: Azure Document Intelligence `cn-workspace-mcp-di` (RG `CCN-AI`, sub "CCN PT", **francecentral**, S0), endpoint `https://cn-workspace-mcp-di.cognitiveservices.azure.com/`, created 2026-09-24, dedicated to this app (not shared with feuilles_jaunes, which uses `claude-code-resource-ccn` in eastus2). Live OCR test of a scanned PDF passed on it, and in production on 2026-09-24 (`engine=di-read`, 1 page, 5 s, cleanup done). Key pushed by Luciano with `set-coolify-di.sh`.
 - Secrets (signing key, client secret) were written by Luciano with `~/Projets_apps_github/mcp_google/set-coolify-secrets.sh` (the permission classifier blocks Claude from writing Coolify secrets). Private copy of the settings: `~/Projets_apps_github/mcp_google/coolify-cn-workspace-mcp.env` (600).
 
 ### Needs validation (Luciano)

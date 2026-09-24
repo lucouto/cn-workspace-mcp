@@ -132,4 +132,4 @@ Test with one account per domain **before** announcing to the Team.
 - **Users disconnect themselves:** Claude connector settings, plus https://myaccount.google.com/permissions.
 - **Rollback:** redeploy the previous commit in Coolify; sessions survive (volume).
 - **Upstream updates:** rebase on a new upstream tag, then `uv lock`, run the tests, redeploy. Check the "Private FastMCP internals" list in FORK_CHANGES.md.
-- **OCR later:** create the Azure resource, then set `CN_DI_ENABLED=true`, `CN_DI_ENDPOINT` and `CN_DI_KEY`.
+- **OCR (scanned PDFs):** dedicated Azure Document Intelligence resource `cn-workspace-mcp-di` (RG `CCN-AI`, **France Central**, S0, pay per page). `~/Projets_apps_github/mcp_google/set-coolify-di.sh` reads the key from Azure and sets `CN_DI_ENABLED=true`, `CN_DI_ENDPOINT`, `CN_DI_KEY` in Coolify; then redeploy. Keep the resource in an EU region: the privacy page says "EU region". Rotate the key: `az cognitiveservices account keys regenerate -n cn-workspace-mcp-di -g CCN-AI --key-name key1`, rerun the script, redeploy.
